@@ -5,18 +5,20 @@ Beaker is a privileged loader architecture for Firefox OS that allows for the fe
 The beaker architecture consists of three major components: an update server, your application bundles, and the beaker wrapper itself.
 
 ### Server
-Beaker relies on a server to provide information about available bundles. For example, when beaker checks for updates it sends a request to the update server that you specify and will then load the specified bundle:
+Beaker relies on a server to provide information about available bundles. For example, when beaker checks for updates it sends a request to the update server that you specify and will then load the latest bundle (within the `~` semver range) for your wrapper:
 
-#### Request
 ```bash
 curl -H "User-Agent=Mozilla/5.0 (Mobile; rv:26.0) Gecko/26.0 Firefox/26.0" https://my.domain.org/updater
 ```
 
-#### Response
+```json
 {
-    "version": "1.0.2",
-    "uri": "https://some.host.org/bundles/1.0.2/index.html"
+    "1.0.0": "https://some.host.org/bundles/1.0.0/index.html",
+    "1.0.1": "https://some.host.org/bundles/1.0.1/index.html",
+    "1.0.2": "https://some.host.org/bundles/1.0.2/index.html",
+    "1.1.0": "https://some.host.org/bundles/1.1.0/index.html"
 }
+```
 
 ### Bundles
 Bundles are nothing more than simple hosted apps with an `appcache` manifest
