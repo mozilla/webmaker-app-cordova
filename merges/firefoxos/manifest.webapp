@@ -4,8 +4,8 @@
         "*"
     ],
     "version": "0.0.1",
-    "name": "Beaker",
-    "description": "A privileged loader app for Mobile Webmaker",
+    "name": "Webmaker",
+    "description": "A privileged loader app for Mobile Webmaker (placeholder description)",
     "developer": {
         "name": "Mozilla Foundation",
         "url": "https://www.mozilla.org"

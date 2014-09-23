@@ -37,10 +37,10 @@ FALLBACK:
 ### Beaker Setup
 Once you have a hosted app:
 
-1. copy `beaker/www/config.json.dist` to `beaker/ww/config.json`, and modify the `appUrl` and `appManifestUrl` variables to point at your hosted app and it's app manifest file, respectively.
-2. from the `beaker/` directory, run `cordova platform add firefoxos`, then `cordova prepare`.
+1. copy `www/config.json.dist` to `www/config.json`, and modify the `appUrl` and `appManifestUrl` variables to point at your hosted app and it's app manifest file, respectively.
+2. run `cordova platform add firefoxos`, then `cordova prepare`.
 
-You can then test your `beaker` using the Firefox [App Manager](https://developer.mozilla.org/en-US/Firefox_OS/Using_the_App_Manager).  Add Beaker as a packaged app located in the `beaker/platforms/firefoxos/www/` directory.
+You can then test your `beaker` using the Firefox [App Manager](https://developer.mozilla.org/en-US/Firefox_OS/Using_the_App_Manager).  Add Beaker as a packaged app located in the `platforms/firefoxos/www/` directory.
 
 ---
 
