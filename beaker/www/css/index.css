@@ -1,0 +1,12 @@
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+#app-iframe {
+    height: 100%;
+    width: 100%;
+    left: 0px;
+    top: 0px;
+    position: absolute;
+}

@@ -1,0 +1,21 @@
+{
+    "launch_path": "/index.html",
+    "installs_allowed_from": [
+        "*"
+    ],
+    "version": "0.0.1",
+    "name": "Beaker",
+    "description": "A privileged loader app for Mobile Webmaker",
+    "developer": {
+        "name": "Mozilla Foundation",
+        "url": "https://www.mozilla.org"
+    },
+    "icons": {
+        "128": "/img/logo.png"
+    },
+    "type": "privileged",
+    "permissions": {
+        "browser": {},
+        "embed-apps": {}
+    }
+}
