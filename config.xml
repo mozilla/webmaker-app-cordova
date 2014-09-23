@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="org.mozilla.beaker" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Webmaker</name>
+    <description>
+        A privileged loader app for Mobile Webmaker (placeholder description)
+    </description>
+    <author href="https://www.mozilla.org">
+        Mozilla Foundation
+    </author>
+    <content src="index.html" />
+    <access origin="*" />
+    <platform name="firefoxos">
+      <icon src="icon/icon-128.png" width="128" height="128" />
+    </platform>
+</widget>

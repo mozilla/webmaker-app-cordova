@@ -34,16 +34,13 @@ FALLBACK:
 
 ```
 
-### Beaker
-Once you have a hosted app, you can generate a beaker:
-```bash
-[sudo] npm install -g beaker
-beaker create --name myApp --host https://my.domain.org/myapp
-```
+### Beaker Setup
+Once you have a hosted app:
 
-This will generate a directory called `myApp` and pull down the hosted app.
+1. copy `www/config.json.dist` to `www/config.json`, and modify the `appUrl` and `appManifestUrl` variables to point at your hosted app and it's app manifest file, respectively.
+2. run `cordova platform add firefoxos`, then `cordova prepare`.
 
-You can test your `beaker` using the Firefox [App Manager](https://developer.mozilla.org/en-US/Firefox_OS/Using_the_App_Manager).
+You can then test your `beaker` using the Firefox [App Manager](https://developer.mozilla.org/en-US/Firefox_OS/Using_the_App_Manager).  Add Beaker as a packaged app located in the `platforms/firefoxos/www/` directory.
 
 ---
 
