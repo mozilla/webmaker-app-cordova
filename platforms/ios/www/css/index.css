@@ -1,0 +1,17 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #F6F7F7;
+}
+
+iframe {
+    border: 0;
+}
+
+#app-iframe {
+    height: 100%;
+    width: 100%;
+    left: 0px;
+    top: 0px;
+    position: absolute;
+}
