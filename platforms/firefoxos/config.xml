@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="org.mozilla.beaker" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <platform name="firefoxos">
+        <icon height="128" src="icon/icon-128.png" width="128" />
+        <icon height="60" src="icon/icon-60.png" width="60" />
+    </platform>
+    <icon height="128" src="icon/icon-128.png" width="128" />
+    <name>Webmaker</name>
+    <description />
+    <author href="https://www.mozilla.org">Mozilla Foundation</author>
+    <content src="index.html" />
+    <access origin="*" />
+    <platofmr name="ios">
+        <preference name="WebViewBounce" value="false" />
+        <preference name="StatusBarOverlaysWebView" value="false" />
+    </platofmr>
+</widget>
