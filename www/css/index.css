@@ -1,6 +1,11 @@
 body {
     margin: 0;
     overflow: hidden;
+    background-color: #F6F7F7;
+}
+
+iframe {
+    border: 0;
 }
 
 #app-iframe {
