@@ -14,7 +14,11 @@ var app = {
   }    
 };
 
+// Init on window load
 window.addEventListener('load', function () {
     FastClick.attach(document.body);
     app.initialize();
 }, false);
+
+// "Active" styles hack for mobile webkit
+document.addEventListener('touchstart', function(){}, true);
