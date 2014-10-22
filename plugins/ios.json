@@ -6,6 +6,10 @@
     "config_munge": {
         "files": {}
     },
-    "installed_plugins": {},
+    "installed_plugins": {
+        "com.knowledgecode.cordova.websocket": {
+            "PACKAGE_NAME": "org.mozilla.beaker"
+        }
+    },
     "dependent_plugins": {}
 }

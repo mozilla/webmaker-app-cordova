@@ -6,8 +6,7 @@
     <author href="https://www.mozilla.org">Mozilla Foundation</author>
     <content src="index.html" />
     <access origin="*" />
-    <platofmr name="ios">
-        <preference name="WebViewBounce" value="false" />
-        <preference name="StatusBarOverlaysWebView" value="false" />
-    </platofmr>
+    <feature name="WebSocket">
+        <param name="android-package" value="com.knowledgecode.cordova.websocket.WebSocket" />
+    </feature>
 </widget>
