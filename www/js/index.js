@@ -14,4 +14,7 @@ var app = {
   }    
 };
 
-app.initialize();
+window.addEventListener('load', function () {
+    FastClick.attach(document.body);
+    app.initialize();
+}, false);
