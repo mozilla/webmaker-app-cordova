@@ -12,7 +12,7 @@ The beaker architecture consists of two major components: the hosted application
 The source for the Firefox OS distribution is found within `/platforms/firefoxos`. To run, install the contents of the `www` directory using [WebIDE](https://developer.mozilla.org/en-US/docs/Tools/WebIDE) in the latest Firefox or Firefox Nightly. The Webmaker app is tested against Firefox OS versions 1.3 and later.
 
 #### Android
-The source for the Android distribution is found within `/platforms/android`. The Webmaker app is tested against Android 4.2 and later. To run:
+The source for the Android distribution is found within `/platforms/android`. The Webmaker app is tested against Android 4.4 and later. To run:
 - [Install the Android SDK](https://developer.android.com/sdk) for your platform
 - If you've never developed for Android before, try going through the "[Building Your First App](https://developer.android.com/training/basics/firstapp/index.html)" guide to ensure your environment is setup properly
 - Add the `/platforms/android` directory to your Eclipse workspace
