@@ -26,18 +26,6 @@ The source for the iOS distribution is found within `/platforms/ios`. The Webmak
 
 ---
 
-### Hosted App -> Beaker Communication
-One of the advantages of wrapping hosted apps in a privileged application is that you can have some of the flexibility of a hosted app while still accessing device features. To do this, you can simply require beaker in your application  and it will handle communication for you:
-
-```js
-var beaker = require('beaker');
-
-var contacts = beaker.navigator.contacts.getAll({});
-console.dir(contacts);
-```
-
-***Note: In order to access privileged features, they will need to be enabled in the `webapp` manifest of your wrapper application. 
-
 ### Development
 For normal development you will want to have the Cordova CLI installed:
 ```bash
