@@ -4,6 +4,8 @@
     <feature name="WebSocket">
         <param name="android-package" value="com.knowledgecode.cordova.websocket.WebSocket" />
     </feature>
+    <preference name="android-minSdkVersion" value="10" />
+    <preference name="android-targetSdkVersion" value="17" />
     <name>Webmaker</name>
     <description />
     <author href="https://www.mozilla.org">Mozilla Foundation</author>
