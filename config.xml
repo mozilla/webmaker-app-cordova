@@ -12,7 +12,8 @@
     </platform>
 
     <platform name="android">
-
+        <preference name="android-minSdkVersion" value="10" />
+        <preference name="android-targetSdkVersion" value="17" />
     </platform>
 
     <platform name="ios">
