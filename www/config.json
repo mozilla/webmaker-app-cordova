@@ -1,4 +1,4 @@
 {
-  "appUrl": "http://webmaker-app.mofodev.net",
-  "appManifestUrl": "http://webmaker-app.mofodev.net/manifest.webapp"
+  "appUrl": "https://webmaker-app.mofostaging.net/",
+  "appManifestUrl": "https://webmaker-app.mofostaging.net/manifest.webapp"
 }
