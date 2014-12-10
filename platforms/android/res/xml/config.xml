@@ -6,9 +6,15 @@
     </feature>
     <preference name="android-minSdkVersion" value="10" />
     <preference name="android-targetSdkVersion" value="17" />
+    <icon density="mdpi" src="www/res/android/icon_mdpi.png" />
+    <icon density="hdpi" src="www/res/android/icon_hdpi.png" />
+    <icon density="xhdpi" src="www/res/android/icon_xhdpi.png" />
+    <icon density="xxhdpi" src="www/res/android/icon_xxhdpi.png" />
+    <icon density="xxxhdpi" src="www/res/android/icon_xxxhdpi.png" />
     <name>Webmaker</name>
     <description />
     <author href="https://www.mozilla.org">Mozilla Foundation</author>
     <content src="index.html" />
     <access origin="*" />
+    <icon src="www/res/icon.png" />
 </widget>
