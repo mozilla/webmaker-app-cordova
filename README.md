@@ -1,5 +1,7 @@
 ### beaker
 
+[![Build Status](https://travis-ci.org/mozillafordevelopment/beaker.svg)](https://travis-ci.org/mozillafordevelopment/beaker)
+
 Beaker is a privileged loader architecture for mobile devices that allows for the fetching and execution of hosted apps. Beaker uses [appcache](https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache) to allow for offline app execution, and provides support for native device functions via a [Cordova](http://cordova.apache.org/) API wrapper.
 
 The beaker architecture consists of two major components: the hosted applications, and the cordova wrapper itself.
