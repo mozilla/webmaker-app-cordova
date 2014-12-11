@@ -34,15 +34,11 @@
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/img \
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/index.html \
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/js \
-/Users/asliwinski/Source/beaker/platforms/android/assets/www/plugins \
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/res \
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/css/index.css \
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/img/logo.png \
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/js/fastclick.js \
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/js/index.js \
-/Users/asliwinski/Source/beaker/platforms/android/assets/www/plugins/com.knowledgecode.cordova.websocket \
-/Users/asliwinski/Source/beaker/platforms/android/assets/www/plugins/com.knowledgecode.cordova.websocket/www \
-/Users/asliwinski/Source/beaker/platforms/android/assets/www/plugins/com.knowledgecode.cordova.websocket/www/websocket.js \
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/res/android \
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/res/ff \
 /Users/asliwinski/Source/beaker/platforms/android/assets/www/res/icon.png \
