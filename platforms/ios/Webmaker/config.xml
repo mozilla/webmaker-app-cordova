@@ -21,9 +21,14 @@
     </feature>
     <preference name="WebViewBounce" value="false" />
     <preference name="StatusBarOverlaysWebView" value="false" />
+    <icon height="72" src="www/res/ios/icon-72.png" width="72" />
+    <icon height="144" src="www/res/ios/icon-72@2x.png" width="144" />
+    <icon height="57" src="www/res/ios/icon.png" width="57" />
+    <icon height="114" src="www/res/ios/icon@2x.png" width="114" />
     <name>Webmaker</name>
     <description />
     <author href="https://www.mozilla.org">Mozilla Foundation</author>
     <content src="index.html" />
     <access origin="*" />
+    <icon src="www/res/icon.png" />
 </widget>
