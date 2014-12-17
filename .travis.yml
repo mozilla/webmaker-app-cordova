@@ -26,6 +26,7 @@ deploy:
   bucket: webmaker-dist
   local-dir: deploy
   acl: public_read
+  detect_encoding: true
   on:
     repo: mozillafordevelopment/beaker
     branch: master
