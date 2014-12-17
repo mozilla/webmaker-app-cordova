@@ -15,8 +15,10 @@ install:
 script:
 - echo "Script stage"
 - cordova build android
+- cordova compile android
 before_deploy:
 - ls "platforms/android/ant-build"
+- ls "platforms/android/bin"
 deploy:
   provider: s3
   access_key_id: AKIAJ7GSK4A6OFIMBDGQ
