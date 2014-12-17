@@ -18,6 +18,8 @@ script:
 before_deploy:
 - mkdir deploy
 - cp platforms/android/ant-build/Webmaker-debug-unaligned.apk deploy/Webmaker-debug-unaligned.apk
+- git add .
+- git commit -a -m "Build"
 deploy:
   provider: s3
   access_key_id: AKIAJ7GSK4A6OFIMBDGQ
