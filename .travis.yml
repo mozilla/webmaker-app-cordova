@@ -16,10 +16,7 @@ script:
 - echo "Script stage"
 - cordova build android
 before_deploy:
-- git config --global user.email "travis@travis-ci.org"
-- git config --global user.name "Travis"
-- git add .
-- git commit -a -m "Build"
+- ls "platforms/android/ant-build"
 deploy:
   provider: s3
   access_key_id: AKIAJ7GSK4A6OFIMBDGQ
@@ -27,6 +24,7 @@ deploy:
     secure: I7rhqX1vAwimCneD47gjKu+60zUs7KOPndh2nu56RXepP66XtF3AHJZfhaVB6wyTTCO6ZrAukJ4qh6yS5HLfY9w/M/TcXWrCl5wwA/4UT9+VE5DBQ57PwQBYpN+DAtgknzXq/e7uo6tNBXdKu3B4QfWU43+xeC7R2btiYeT0Seo=
   bucket: webmaker-dist
   local-dir: "platforms/android/ant-build"
+  upload-dir: "android"
   acl: public_read
   detect_encoding: true
   on:
