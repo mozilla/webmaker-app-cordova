@@ -18,6 +18,8 @@ script:
 before_deploy:
 - mkdir deploy
 - cp platforms/android/ant-build/Webmaker-debug-unaligned.apk deploy/Webmaker-debug-unaligned.apk
+- git config --global user.email "travis@travis-ci.org"
+- git config --global user.name "Travis"
 - git add .
 - git commit -a -m "Build"
 deploy:
