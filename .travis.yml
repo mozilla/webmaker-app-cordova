@@ -28,7 +28,6 @@ deploy:
   local-dir: "platforms/android/ant-build"
   upload-dir: "android"
   acl: public_read
-  detect_encoding: true
   on:
     repo: mozillafordevelopment/beaker
     branch: master
