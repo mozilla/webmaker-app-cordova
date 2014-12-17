@@ -2,6 +2,7 @@
 
 build/
 platforms/android/ant-build/
+platforms/android/CordovaLib/ant-build/
 
 *.pbxuser
 !default.pbxuser
@@ -30,5 +31,3 @@ build/
 local.properties
 proguard/
 *.log
-
-/deploy
