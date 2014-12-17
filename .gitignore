@@ -1,5 +1,8 @@
 .DS_Store
+
 build/
+platforms/android/ant-build/
+
 *.pbxuser
 !default.pbxuser
 *.mode1v3

@@ -15,7 +15,6 @@ install:
 script:
 - echo "Script stage"
 - cordova build android
-- cordova compile android
 before_deploy:
 - ls "platforms/android/ant-build"
 deploy:
