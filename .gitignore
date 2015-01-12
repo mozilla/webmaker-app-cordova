@@ -3,6 +3,7 @@
 build/
 platforms/android/ant-build/
 platforms/android/CordovaLib/ant-build/
+node_modules/
 
 *.pbxuser
 !default.pbxuser
