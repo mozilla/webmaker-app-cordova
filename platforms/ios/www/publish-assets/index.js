@@ -442,7 +442,7 @@ module.exports = {
 };
 
 },{"./index.html":19}],21:[function(require,module,exports){
-module.exports = '<button v-if="back === true" class="back nav-btn" v-on="click: goBack">&lt;</button>\n<a v-if="typeof back === \'string\'" class="back nav-btn" href="{{back}}">&lt;</a>\n\n<button v-if="cancel === true" v-on="click: goBack" class="nav-btn">{{\'Cancel\' | i18n}}</button>\n<a v-if="typeof cancel === \'string\'" href="{{cancel}}" class="nav-btn">{{\'Cancel\' | i18n}}</a>\n\n<h1>{{title | i18n}}</h1>\n\n<button v-if="typeof onDone === \'function\'" v-on="click: onDone" v-class="disabled: doneDisabled" class="nav-btn">{{doneLabel || \'Done\' | i18n}}\n</button>\n<a v-show="!offlineUser" v-if="typeof onDone === \'string\'" href="{{onDone}}" v-class="disabled: doneDisabled" class="nav-btn">{{doneLabel || \'Done\' | i18n}}</a>\n';
+module.exports = '<div>\n    <button v-if="back === true" class="back nav-btn" v-on="click: goBack">&lt;</button>\n    <a v-if="typeof back === \'string\'" class="back nav-btn" href="{{back}}">&lt;</a>\n\n    <button v-if="cancel === true" v-on="click: goBack" class="nav-btn">{{\'Cancel\' | i18n}}</button>\n    <a v-if="typeof cancel === \'string\'" href="{{cancel}}" class="nav-btn">{{\'Cancel\' | i18n}}</a>\n</div>\n\n<h1>{{title | i18n}}</h1>\n\n<div>\n    <button v-if="typeof onDone === \'function\'" v-on="click: onDone" v-class="disabled: doneDisabled" class="nav-btn">{{doneLabel || \'Done\' | i18n}}</button>\n    <a v-show="!offlineUser" v-if="typeof onDone === \'string\'" href="{{onDone}}" v-class="disabled: doneDisabled" class="nav-btn">{{doneLabel || \'Done\' | i18n}}</a>\n</div>\n';
 },{}],22:[function(require,module,exports){
 (function (global){
 var page = require('page');
