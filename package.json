@@ -1,0 +1,26 @@
+{
+  "name": "webmaker-app-cordova",
+  "version": "0.0.0",
+  "description": "[![Build Status](https://travis-ci.org/mozillafordevelopment/beaker.svg)](https://travis-ci.org/mozillafordevelopment/beaker)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/k88hudson/webmaker-app-cordova.git"
+  },
+  "author": "",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/k88hudson/webmaker-app-cordova/issues"
+  },
+  "homepage": "https://github.com/k88hudson/webmaker-app-cordova",
+  "dependencies": {
+    "webmaker": "0.0.13"
+  },
+  "devDependencies": {
+    "fs-extra": "^0.14.0",
+    "gulp": "^3.8.10"
+  }
+}
