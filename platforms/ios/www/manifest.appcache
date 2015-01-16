@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Checksum 66f7614e8d23dc2eeff4e380d4e14ea6
+# Checksum b0b87f1af54acfe294760c60b44d432a
 
 CACHE:
 content/blog_leaves.jpg
@@ -78,11 +78,9 @@ images/scientist.png
 images/teacher.png
 images/vendor.png
 index.html
-index.js
 publish-assets/app.js
 publish-assets/common.css
 publish-assets/index.html
-publish-assets/index.js
 styles/common.css
 
 NETWORK:

@@ -20,6 +20,7 @@
     "webmaker": "0.0.13"
   },
   "devDependencies": {
-    "fs-extra": "^0.14.0"
+    "fs-extra": "^0.14.0",
+    "gulp": "^3.8.10"
   }
 }

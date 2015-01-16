@@ -56,7 +56,7 @@ module.exports = {
     }
 };
 
-},{"../../lib/data":55,"./index.html":1}],3:[function(require,module,exports){
+},{"../../lib/data":59,"./index.html":1}],3:[function(require,module,exports){
 module.exports = '<label for="block_{{$index}}">{{attributes.label.value}}</label>\n\n<select id="block_{{$index}}" v-on="change: reportDataChange(this)">\n	<option selected disabled>Select from list</option>\n	<option v-repeat="attributes.elements.items" v-model="$value" value="{{$value}}"></option>\n</select>\n';
 },{}],4:[function(require,module,exports){
 module.exports = {
@@ -133,11 +133,11 @@ module.exports = {
     template: require('./index.html'),
     lazy: false,
     data: {
-        name: 'Input',
+        name: 'Text Box',
         icon: 'images/blocks_input.png',
         attributes: {
             inputType: {
-                label: 'Input Type',
+                label: 'Text Box Type',
                 type: 'dropdownChoice',
                 options: ['Single Line Text', 'Long Text'],
                 value: 0,
@@ -462,7 +462,7 @@ module.exports = {
     }
 };
 
-},{"../../lib/i18n":57,"./index.html":21}],23:[function(require,module,exports){
+},{"../../lib/i18n":60,"./index.html":21}],23:[function(require,module,exports){
 module.exports = '<label for="{{id}}">{{ label | i18n }}</label>\n<a class="input color-input" href="#" v-on="click: openColorPicker(value)">\n    <span class="input-swatch" style="background-color:{{value}};"></span> {{ value }}\n</a>\n\n<div v-component="colorPicker" v-class="active: showColorPicker" v-with="show: showColorPicker, selectedColor: value"></div>\n\n';
 },{}],24:[function(require,module,exports){
 module.exports = {
@@ -518,7 +518,7 @@ module.exports = {
     }
 };
 
-},{"../../../lib/data":55,"./index.html":25}],27:[function(require,module,exports){
+},{"../../../lib/data":59,"./index.html":25}],27:[function(require,module,exports){
 module.exports = '<label for="{{id}}">{{ label | i18n }}</label>\n<select class="dropdownChoiceSelect" v-model="value">\n	<option v-repeat="options" value="{{$index}}" class="option-{{$index}}" v-attr="selected : $index == value">{{$value}}</option>\n</select>\n';
 },{}],28:[function(require,module,exports){
 module.exports = {
@@ -607,9 +607,11 @@ module.exports = {
             this.selectedColor = color;
         },
         onSave: function (e) {
+            e.preventDefault();
             this.show = false;
         },
         onCancel: function (e) {
+            e.preventDefault();
             this.selectedColor = this.originalColor;
             this.show = false;
         }
@@ -628,9 +630,80 @@ module.exports = {
     }
 };
 
-},{"../../lib/utils":65,"./index.html":37}],39:[function(require,module,exports){
-module.exports = '<div v-if="isInteractive" v-component="switch" v-with="value: sortOldest, options: sortOptions"></div>\n<div v-if="isInteractive" class="dataRepresentationSelectAll">\n    <input style="display: none;" id="dataRepresentationDataSetMarkSelected-All" type="checkbox" name="markAllSelected" v-model="allSelected">\n    <label for="dataRepresentationDataSetMarkSelected-All">Select all</label>\n    <label for="dataRepresentationDataSetMarkSelected-All" class="tip tip-checkmark fa fa-check"></label>\n</div>\n<table v-repeat="data: dataSet | orderBy sortKey !sortOldest" class="dataRepresentationDataSet" v-class="unread: !data.isRead && isInteractive, interactive: isInteractive">\n    <thead v-if="isInteractive">\n        <tr>\n            <th>Submitted {{formatUnixTime(data.submitted)}}</th>\n            <th>\n                <input style="display: none;" id="dataRepresentationDataSetMarkSelected-{{$index}}" type="checkbox" name="markSelected" v-model="data.isSelected">\n                <label for="dataRepresentationDataSetMarkSelected-{{$index}}" class="tip tip-checkmark fa fa-check"></label>\n            </th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>Time</td>\n            <td>{{formatUnixTime(data.submitted)}}</td>\n        </tr>\n        <tr v-repeat="dataBlock: data.dataBlocks">\n            <td>{{dataBlock.label}}</td>\n            <td>{{dataBlock.value}}</td>\n        </tr>\n    </tbody>\n</table>\n\n<div class="noDataInfo" v-if="!dataSet.length">{{ \'No Data available\' | i18n }}</div>\n\n<button v-if="isInteractive && countSelected >= 1" type="button" class="dataRepresentationActionButton btn" v-class="btn-share: countSelected === 0, btn-remove: countSelected >= 1, " v-on="click: actionButton()"></button>\n';
+},{"../../lib/utils":68,"./index.html":37}],39:[function(require,module,exports){
+module.exports = '<nav class="navigationBar">\n    <button class="nav-btn" v-on="click: onCancel">{{ \'Cancel\' | i18n}}</button>\n    <h1>Choose Contacts</h1>\n    <button v-class="disabled: saveDisabled" class="nav-btn" v-on="click: onSave">{{ \'Done\' | i18n}}</button>\n</nav>\n\n<div class="inner">\n    <div class="contact-list">\n        <div v-repeat="modeledContacts">\n            <div class="letter-header">{{ $key }}</div>\n\n            <div v-repeat="person : $value" class="contact">\n                <label class="circle-toggle" v-class="on: person.selected">\n                    <span class="fa fa-check"></span>\n                    <input type="checkbox" v-model="person.selected">\n                </label>\n                <span>{{ person.displayName }}</span>\n            </div>\n        </div>\n    </div>\n</div>\n';
 },{}],40:[function(require,module,exports){
+var clone = require('clone');
+
+module.exports = {
+    className: 'contact-picker',
+    template: require('./index.html'),
+    ready: function () {
+        var self = this;
+
+        navigator.contacts.find(['*'], function (contacts) {
+            self.$data.contacts = contacts;
+            self.modelData();
+        }, function (err) {
+            console.log(err);
+        });
+
+        self.$on('openContactPicker', function (event) {
+            self.open();
+        });
+
+    },
+    methods: {
+        open: function () {
+            // Store a copy of intial contact data in case user doesn't save
+            this.initialState = clone(this.modeledContacts);
+            this.show = true;
+        },
+        close: function () {
+            this.show = false;
+        },
+        onSave: function (e) {
+            // TODO: Do something with selected contacts
+            this.close();
+        },
+        onCancel: function (e) {
+            this.modeledContacts = this.initialState;
+            this.close();
+        },
+        modelData: function () {
+            var modeled = {};
+
+            // Sort contacts into alphabetical order
+            this.contacts = this.contacts
+            .filter(function (contact) {
+                return !!contact.displayName;
+            })
+            .sort(function (a, b) {
+                return a.displayName > b.displayName;
+            });
+
+
+            // Create an object with alpha-keys to group by first name
+            this.contacts.forEach(function (contact, i) {
+                var firstLetter = contact.displayName[0].toUpperCase();
+
+                if (!modeled[firstLetter]) {
+                    modeled[firstLetter] = [];
+                }
+
+                contact.$add('selected', false);
+
+                modeled[firstLetter].push(contact);
+            });
+
+            this.modeledContacts = modeled;
+        }
+    }
+};
+
+},{"./index.html":39,"clone":86}],41:[function(require,module,exports){
+module.exports = '<div v-if="isInteractive" v-component="switch" v-with="value: sortOldest, options: sortOptions"></div>\n<div v-if="isInteractive" class="dataRepresentationSelectAll">\n    <input style="display: none;" id="dataRepresentationDataSetMarkSelected-All" type="checkbox" name="markAllSelected" v-model="allSelected">\n    <label for="dataRepresentationDataSetMarkSelected-All">Select all</label>\n    <label for="dataRepresentationDataSetMarkSelected-All" class="tip tip-checkmark fa fa-check"></label>\n</div>\n<table v-repeat="data: dataSet | orderBy sortKey !sortOldest" class="dataRepresentationDataSet" v-class="unread: !data.isRead && isInteractive, interactive: isInteractive">\n    <thead v-if="isInteractive">\n        <tr>\n            <th>Submitted {{formatUnixTime(data.submitted)}}</th>\n            <th>\n                <input style="display: none;" id="dataRepresentationDataSetMarkSelected-{{$index}}" type="checkbox" name="markSelected" v-model="data.isSelected">\n                <label for="dataRepresentationDataSetMarkSelected-{{$index}}" class="tip tip-checkmark fa fa-check"></label>\n            </th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>Time</td>\n            <td>{{formatUnixTime(data.submitted)}}</td>\n        </tr>\n        <tr v-repeat="dataBlock: data.dataBlocks">\n            <td>{{dataBlock.label}}</td>\n            <td>{{dataBlock.value}}</td>\n        </tr>\n    </tbody>\n</table>\n\n<div class="noDataInfo" v-if="!dataSet.length">{{ \'No Data available\' | i18n }}</div>\n\n<button v-if="isInteractive && countSelected >= 1" type="button" class="dataRepresentationActionButton btn" v-class="btn-share: countSelected === 0, btn-remove: countSelected >= 1, " v-on="click: actionButton()"></button>\n';
+},{}],42:[function(require,module,exports){
 var dataRepresentation = module.exports = {
     id: 'dataRepresentation',
     template: require('./index.html'),
@@ -696,17 +769,17 @@ dataRepresentation.computed = {
     }
 };
 
-},{"./index.html":39}],41:[function(require,module,exports){
+},{"./index.html":41}],43:[function(require,module,exports){
 module.exports = '<div class="loadingIndicator"><div></div><div></div></div>\n';
-},{}],42:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 module.exports = {
     id: 'loadingIndicator',
     template: require('./index.html')
 };
 
-},{"./index.html":41}],43:[function(require,module,exports){
+},{"./index.html":43}],45:[function(require,module,exports){
 module.exports = '<div class="slide-options">\n    <div class="wrapper">\n        <div class="slide-active {{uiMode}}"></div>\n        <div class="slide-text">\n            <a v-class="active: uiMode === \'play\'" v-on="click: setMode(\'play\')">\n                {{ \'Preview\' | i18n }}\n            </a>\n            <a v-class="active: uiMode === \'edit\'" v-on="click: setMode(\'edit\')">\n                {{ \'Edit\' | i18n }}\n            </a>\n            <a v-class="active: uiMode === \'data\'" v-on="click: setMode(\'data\')">\n                {{ \'Data\' | i18n }}\n            </a> \n        </div>\n    </div>\n</div>\n\n';
-},{}],44:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 // Takes two properties:
 // - uiMode (string: 'preview', 'edit', or 'data')
 // - onChange (function)
@@ -722,29 +795,58 @@ module.exports = {
     }
 };
 
-},{"./index.html":43}],45:[function(require,module,exports){
-module.exports = '<a v-if="typeof back === \'string\'" class="back nav-btn" href="{{back}}">&lt;</a>\n<a v-if="typeof cancel === \'string\'" href="{{cancel}}" class="nav-btn">{{\'Cancel\' | i18n}}</a>\n\n<h1>{{title | i18n}}</h1>\n\n<button v-if="typeof onDone === \'function\'" v-on="click: onDone" v-class="disabled: doneDisabled" class="nav-btn">{{doneLabel || \'Done\' | i18n}}\n</button>\n<a v-show="!offlineUser" v-if="typeof onDone === \'string\'" href="{{onDone}}" v-class="disabled: doneDisabled" class="nav-btn">{{doneLabel || \'Done\' | i18n}}</a>\n';
-},{}],46:[function(require,module,exports){
+},{"./index.html":45}],47:[function(require,module,exports){
+module.exports = '<button v-if="back === true" class="back nav-btn" v-on="click: goBack">&lt;</button>\n<a v-if="typeof back === \'string\'" class="back nav-btn" href="{{back}}">&lt;</a>\n\n<button v-if="cancel === true" v-on="click: goBack" class="nav-btn">{{\'Cancel\' | i18n}}</button>\n<a v-if="typeof cancel === \'string\'" href="{{cancel}}" class="nav-btn">{{\'Cancel\' | i18n}}</a>\n\n<h1>{{title | i18n}}</h1>\n\n<button v-if="typeof onDone === \'function\'" v-on="click: onDone" v-class="disabled: doneDisabled" class="nav-btn">{{doneLabel || \'Done\' | i18n}}\n</button>\n<a v-show="!offlineUser" v-if="typeof onDone === \'string\'" href="{{onDone}}" v-class="disabled: doneDisabled" class="nav-btn">{{doneLabel || \'Done\' | i18n}}</a>\n';
+},{}],48:[function(require,module,exports){
+(function (global){
+var page = require('page');
+
 module.exports = {
     id: 'navigationBar',
-    template: require('./index.html')
-};
-
-},{"./index.html":45}],47:[function(require,module,exports){
-module.exports = '<input type="checkbox" name="switch-checkbox" id="switch-checkbox" v-model="value">\n<label for="switch-checkbox">\n    <span><span class="before">{{options[0]}}</span><span class="after">{{options[1]}}</span></span>\n    <span></span>\n</label>\n';
-},{}],48:[function(require,module,exports){
-module.exports = {
-    id: 'switch',
     template: require('./index.html'),
     data: {
-        value: false,
-        options: ['Off', 'On']
+        goBack: function (e) {
+            if (this.$data.app) {
+                var enteredFrom = this.$root.$data.enteredEditorFrom || '';
+                if (enteredFrom) {
+                    page(enteredFrom);
+                    return;
+                }
+            }
+            e.preventDefault();
+            global.history.back();
+        }
     }
 };
 
-},{"./index.html":47}],49:[function(require,module,exports){
-module.exports = '<ul>\n    <li v-class="active:currentView === \'discover\'">\n        <a href="/discover">\n            <svg width="25px" height="25px" role="img" aria-label="Discover" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">\n                <g sketch:type="MSArtboardGroup" fill="#2A4D50">\n                    <path d="M359.694,117.914 C352.295,111.929 340.899,111.859 333.458,117.76 L213.877,212.47 C211.504,214.339 209.6,216.712 208.221,219.498 L142.799,350.482 C139.985,356.131 140.062,362.634 142.89,368.521 L143.296,369.368 C146.922,376.529 153.985,380.967 161.839,380.967 C164.926,380.967 167.922,380.281 170.715,378.93 C173.172,377.768 174.789,376.382 176.035,375.129 L293.047,284.304 C295.532,282.365 297.583,279.859 298.962,277.066 L365.28,143.569 C369.683,134.714 367.394,124.172 359.694,117.914 L359.694,117.914 Z M239.343,228.99 C242.906,227.282 246.693,226.421 250.606,226.421 C260.588,226.421 269.828,232.231 274.154,241.219 C280.37,254.19 274.889,269.807 261.918,276.037 C258.355,277.745 254.568,278.613 250.655,278.613 C240.666,278.613 231.426,272.796 227.107,263.801 C224.097,257.522 223.705,250.438 226.015,243.865 C228.325,237.292 233.057,232.014 239.343,228.99 L239.343,228.99 Z" id="Fill-1" sketch:type="MSShapeGroup"></path>\n                    <path d="M254.652,2.316 C114.834,2.316 1.077,116.066 1.077,255.884 C1.077,395.702 114.834,509.452 254.652,509.452 C394.47,509.452 508.22,395.702 508.22,255.884 C508.22,116.066 394.47,2.316 254.652,2.316 L254.652,2.316 Z M253.098,400 L252.909,400 C237.523,400 225,412.516 225,427.902 L225,448.426 C139.649,435.378 72.512,366.659 61.466,281 L85.098,281 C100.484,281 113,268.484 113,252.909 C113,237.523 100.484,225 85.098,225 L62.292,225 C75.571,141.063 140.979,76.068 225,63.321 L225,85.098 C225,100.484 237.516,113 253.091,113 C268.484,113 281,100.484 281,85.098 L281,62.838 C365.441,74.318 433.551,140.853 446.998,225 L427.902,225 C412.516,225 400,237.516 400,253.091 C400,268.484 412.516,281 427.902,281 L447.845,281 C436.631,368.206 368.108,437.17 281,448.923 L281,427.902 C281,412.516 268.484,400 253.098,400 L253.098,400 Z" id="Fill-2" sketch:type="MSShapeGroup"></path>\n                </g>\n            </svg>\n        </a>\n    </li>\n    <li v-class="active:currentView === \'templates\'">\n        <a href="/templates">\n            <svg class="bigButton" viewBox="0 0 65 65" role="img" aria-label="Templates" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">\n                <g transform="translate(-126.83983,4)">\n                    <path d="M 130.05923,21.2 C 134.42642,8.7457103 146.19188,0 160,0 c 13.80812,0 25.57358,8.7457103 30.05923,21.2" id="Half-Circle" fill="#ffffff" stroke="#e7e7e7"></path>\n                    <path d="m 133,32 c 0,-14.911688 12.08831,-27 27,-27 14.91169,0 27,12.088312 27,27 0,14.911688 -12.08831,27 -27,27 -14.91169,0 -27,-12.088312 -27,-27 z" id="Oval-61"></path>\n                    <path d="M 165.1407,33.68481 172.85229,25.680063 167.38003,20 l -8.31982,8.635759 -3.15213,-3.272151 c 0.15091,-0.390507 0.40274,-0.769937 0.75213,-1.132595 1.43141,-1.486076 3.93659,-2.155697 3.96128,-2.162026 0.15183,-0.03956 0.28384,-0.11962 0.38994,-0.227215 0.3689,-0.325949 0.36281,-0.926266 0.0207,-1.281329 -0.16585,-0.172468 -0.38323,-0.260127 -0.6,-0.262342 -3.9064,-0.757278 -6.44664,0.861076 -7.89481,2.364241 -0.94421,0.980063 -1.38811,1.889873 -1.40671,1.928481 -0.0598,0.12405 -0.0906,0.261076 -0.0902,0.399683 l 0,0.892405 -0.35641,0.369937 c -0.33567,-0.348734 -0.87987,-0.348734 -1.21585,0 l -1.21616,1.262342 c -0.33597,0.348734 -0.33597,0.913291 0,1.262025 l 1.82409,1.893355 c 0.33597,0.348734 0.87988,0.348734 1.21585,0 l 1.21616,-1.262342 c 0.33597,-0.348734 0.33597,-0.913291 0,-1.262026 l 0.60793,-0.631012 3.51189,3.645253 -7.48903,7.773418 5.47256,5.680063 6.8808,-7.142405 5.60853,5.821202 c 0.33628,0.349051 0.88018,0.349051 1.21616,3.17e-4 l 2.43232,-2.524684 c 0.33597,-0.348734 0.33597,-0.913291 -3.1e-4,-1.262341 l -5.60823,-5.821203 0,0 z m -6.8811,4.617722 -1.21616,1.262341 -0.91219,-0.946835 -1.21585,1.262025 0.91219,0.946836 -1.21616,1.262342 -3.03994,-3.15538 15.80854,-16.409178 3.03994,3.15538 -1.21616,1.262342 -1.82408,-1.893354 -1.21586,1.262025 1.82409,1.893354 -1.21616,1.262342 -0.91189,-0.946519 -1.21616,1.262342 0.91189,0.946519 -1.21585,1.262025 -1.82409,-1.893354 -1.21616,1.262342 1.82409,1.893354 -1.21586,1.262342 -0.91219,-0.946836 -1.21616,1.262342 0.9122,0.946836 -1.21616,1.262341 -1.82409,-1.893671 -1.21585,1.262342 1.82408,1.893355 0,0 z" id="Imported-Layers-3" fill="#ffffff"></path>\n                </g>\n            </svg>\n        </a>\n    </li>\n    <li v-class="active:currentView === \'profile\'">\n        <a href="/profile">\n            <svg width="25px" height="25px" viewBox="0 0 512 512" role="img" aria-label="Profile" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">\n                <g sketch:type="MSArtboardGroup" fill="#2A4D50">\n                    <path d="M259.851158,216.615385 C320.610842,216.615385 369.900789,170.830769 369.900789,110.828308 C369.900789,50.8455385 320.610842,0 259.851158,0 C199.091474,0 149.821474,50.8455385 149.821474,110.828308 C149.821474,170.830769 199.091474,216.615385 259.851158,216.615385 L259.851158,216.615385 Z M452.602579,368.423385 C452.602579,368.423385 452.602579,368.423385 452.602579,368.384 C452.602579,315.844923 408.219684,270.532923 343.949263,248.989538 L259.891053,332.032 L175.773,248.989538 C111.502579,270.513231 67.1196842,315.825231 67.1196842,368.384 L67.1196842,368.423385 L67,368.423385 C67,421.139692 77.6319474,470.232615 95.7042632,512 L423.978105,512 C442.050421,470.232615 452.682368,421.139692 452.682368,368.423385 L452.602579,368.423385 L452.602579,368.423385 Z" id="Profile-2" sketch:type="MSShapeGroup"></path>\n                </g>\n            </svg>\n        </a>\n    </li>\n</ul>\n';
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./index.html":47,"page":103}],49:[function(require,module,exports){
+module.exports = '<input type="checkbox" v-model="value">\n<label v-on="click: onClick">\n  <span class="options">\n    <span class="before">{{options[0]}}</span>\n    <span class="after">{{options[1]}}</span>\n  </span>\n  <span class="indicator"></span>\n</label>\n';
 },{}],50:[function(require,module,exports){
+module.exports = {
+    id: 'switch',
+    template: require('./index.html'),
+    ready: function () {
+        this.$watch('value', function (newVal) {
+            var chosenOption = 0 + newVal; // convert Boolean to Number
+            chosenOption = this.options[chosenOption];
+            this.$dispatch('switchValueChanged', chosenOption);
+        });
+    },
+    data: {
+        value: false,
+        options: ['Off', 'On']
+    },
+    methods: {
+        onClick: function (event) {
+            this.value = !this.value;
+        }
+    }
+};
+
+},{"./index.html":49}],51:[function(require,module,exports){
+module.exports = '<ul>\n    <li v-class="active:currentView === \'discover\'">\n        <a href="/discover">\n            <svg width="25px" height="25px" role="img" aria-label="Discover" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">\n                <g sketch:type="MSArtboardGroup" fill="#2A4D50">\n                    <path d="M359.694,117.914 C352.295,111.929 340.899,111.859 333.458,117.76 L213.877,212.47 C211.504,214.339 209.6,216.712 208.221,219.498 L142.799,350.482 C139.985,356.131 140.062,362.634 142.89,368.521 L143.296,369.368 C146.922,376.529 153.985,380.967 161.839,380.967 C164.926,380.967 167.922,380.281 170.715,378.93 C173.172,377.768 174.789,376.382 176.035,375.129 L293.047,284.304 C295.532,282.365 297.583,279.859 298.962,277.066 L365.28,143.569 C369.683,134.714 367.394,124.172 359.694,117.914 L359.694,117.914 Z M239.343,228.99 C242.906,227.282 246.693,226.421 250.606,226.421 C260.588,226.421 269.828,232.231 274.154,241.219 C280.37,254.19 274.889,269.807 261.918,276.037 C258.355,277.745 254.568,278.613 250.655,278.613 C240.666,278.613 231.426,272.796 227.107,263.801 C224.097,257.522 223.705,250.438 226.015,243.865 C228.325,237.292 233.057,232.014 239.343,228.99 L239.343,228.99 Z" id="Fill-1" sketch:type="MSShapeGroup"></path>\n                    <path d="M254.652,2.316 C114.834,2.316 1.077,116.066 1.077,255.884 C1.077,395.702 114.834,509.452 254.652,509.452 C394.47,509.452 508.22,395.702 508.22,255.884 C508.22,116.066 394.47,2.316 254.652,2.316 L254.652,2.316 Z M253.098,400 L252.909,400 C237.523,400 225,412.516 225,427.902 L225,448.426 C139.649,435.378 72.512,366.659 61.466,281 L85.098,281 C100.484,281 113,268.484 113,252.909 C113,237.523 100.484,225 85.098,225 L62.292,225 C75.571,141.063 140.979,76.068 225,63.321 L225,85.098 C225,100.484 237.516,113 253.091,113 C268.484,113 281,100.484 281,85.098 L281,62.838 C365.441,74.318 433.551,140.853 446.998,225 L427.902,225 C412.516,225 400,237.516 400,253.091 C400,268.484 412.516,281 427.902,281 L447.845,281 C436.631,368.206 368.108,437.17 281,448.923 L281,427.902 C281,412.516 268.484,400 253.098,400 L253.098,400 Z" id="Fill-2" sketch:type="MSShapeGroup"></path>\n                </g>\n            </svg>\n        </a>\n    </li>\n    <li v-class="active:currentView === \'templates\'">\n        <a href="/templates">\n            <svg class="bigButton" viewBox="0 0 65 65" role="img" aria-label="Templates" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">\n                <g transform="translate(-126.83983,4)">\n                    <path d="M 130.05923,21.2 C 134.42642,8.7457103 146.19188,0 160,0 c 13.80812,0 25.57358,8.7457103 30.05923,21.2" id="Half-Circle" fill="#ffffff" stroke="#e7e7e7"></path>\n                    <path d="m 133,32 c 0,-14.911688 12.08831,-27 27,-27 14.91169,0 27,12.088312 27,27 0,14.911688 -12.08831,27 -27,27 -14.91169,0 -27,-12.088312 -27,-27 z" id="Oval-61"></path>\n                    <path d="M 165.1407,33.68481 172.85229,25.680063 167.38003,20 l -8.31982,8.635759 -3.15213,-3.272151 c 0.15091,-0.390507 0.40274,-0.769937 0.75213,-1.132595 1.43141,-1.486076 3.93659,-2.155697 3.96128,-2.162026 0.15183,-0.03956 0.28384,-0.11962 0.38994,-0.227215 0.3689,-0.325949 0.36281,-0.926266 0.0207,-1.281329 -0.16585,-0.172468 -0.38323,-0.260127 -0.6,-0.262342 -3.9064,-0.757278 -6.44664,0.861076 -7.89481,2.364241 -0.94421,0.980063 -1.38811,1.889873 -1.40671,1.928481 -0.0598,0.12405 -0.0906,0.261076 -0.0902,0.399683 l 0,0.892405 -0.35641,0.369937 c -0.33567,-0.348734 -0.87987,-0.348734 -1.21585,0 l -1.21616,1.262342 c -0.33597,0.348734 -0.33597,0.913291 0,1.262025 l 1.82409,1.893355 c 0.33597,0.348734 0.87988,0.348734 1.21585,0 l 1.21616,-1.262342 c 0.33597,-0.348734 0.33597,-0.913291 0,-1.262026 l 0.60793,-0.631012 3.51189,3.645253 -7.48903,7.773418 5.47256,5.680063 6.8808,-7.142405 5.60853,5.821202 c 0.33628,0.349051 0.88018,0.349051 1.21616,3.17e-4 l 2.43232,-2.524684 c 0.33597,-0.348734 0.33597,-0.913291 -3.1e-4,-1.262341 l -5.60823,-5.821203 0,0 z m -6.8811,4.617722 -1.21616,1.262341 -0.91219,-0.946835 -1.21585,1.262025 0.91219,0.946836 -1.21616,1.262342 -3.03994,-3.15538 15.80854,-16.409178 3.03994,3.15538 -1.21616,1.262342 -1.82408,-1.893354 -1.21586,1.262025 1.82409,1.893354 -1.21616,1.262342 -0.91189,-0.946519 -1.21616,1.262342 0.91189,0.946519 -1.21585,1.262025 -1.82409,-1.893354 -1.21616,1.262342 1.82409,1.893354 -1.21586,1.262342 -0.91219,-0.946836 -1.21616,1.262342 0.9122,0.946836 -1.21616,1.262341 -1.82409,-1.893671 -1.21585,1.262342 1.82408,1.893355 0,0 z" id="Imported-Layers-3" fill="#ffffff"></path>\n                </g>\n            </svg>\n        </a>\n    </li>\n    <li v-class="active:currentView === \'profile\'">\n        <a href="/profile">\n            <svg width="25px" height="25px" viewBox="0 0 512 512" role="img" aria-label="Profile" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">\n                <g sketch:type="MSArtboardGroup" fill="#2A4D50">\n                    <path d="M259.851158,216.615385 C320.610842,216.615385 369.900789,170.830769 369.900789,110.828308 C369.900789,50.8455385 320.610842,0 259.851158,0 C199.091474,0 149.821474,50.8455385 149.821474,110.828308 C149.821474,170.830769 199.091474,216.615385 259.851158,216.615385 L259.851158,216.615385 Z M452.602579,368.423385 C452.602579,368.423385 452.602579,368.423385 452.602579,368.384 C452.602579,315.844923 408.219684,270.532923 343.949263,248.989538 L259.891053,332.032 L175.773,248.989538 C111.502579,270.513231 67.1196842,315.825231 67.1196842,368.384 L67.1196842,368.423385 L67,368.423385 C67,421.139692 77.6319474,470.232615 95.7042632,512 L423.978105,512 C442.050421,470.232615 452.682368,421.139692 452.682368,368.423385 L452.602579,368.423385 L452.602579,368.423385 Z" id="Profile-2" sketch:type="MSShapeGroup"></path>\n                </g>\n            </svg>\n        </a>\n    </li>\n</ul>\n';
+},{}],52:[function(require,module,exports){
 module.exports = {
     id: 'tabBar',
     template: require('./index.html'),
@@ -771,9 +873,26 @@ module.exports = {
     }
 };
 
-},{"./index.html":49}],51:[function(require,module,exports){
-module.exports = {"BASE_URL":"/android_asset/www/","LOGIN_URL":"https://login-dev.mofodev.net","PUBLISH_ENDPOINT":"https://webmaker-app-publisher.mofodev.net/publish/webmaker-app","PUBLISH_DEV_MODE":true,"OFFLINE":false,"FIREBASE_URL_DATA":"https://sizzling-inferno-3981.firebaseio.com","FIREBASE_URL":"https://webmaker-app-dev.firebaseio.com/mofodev","APPCACHE":false,"package":{"name":"webmaker","version":"0.0.13","repository":{"type":"git","url":"https://github.com/mozilla/webmaker-app"},"scripts":{"test":"gulp test"},"main":"export.js","dependencies":{"page":"1.5.0","vue":"0.10.6","watchjs":"0.0.0","clone":"0.1.18","xhr":"1.16.1","firebase":"2.0.4","webmaker-login-ux":"1.3.4","font-awesome":"4.2.0","localforage":"1.1.1","lodash.throttle":"2.4.1","event-emitter":"0.3.1","fastclick":"1.0.3","sortable":"git://github.com/k88hudson/Sortable#webmaker-app","esprima":"^1.2.2"},"devDependencies":{"browserify":"6.3.2","bulk-require":"0.2.1","bulkify":"1.0.2","fs-extra":"0.11.1","glob":"4.0.5","gulp":"^3.8.8","gulp-exit":"0.0.2","gulp-jscs":"1.3.1","gulp-jshint":"1.8.4","gulp-less":"1.3.6","gulp-minify-css":"0.3.11","gulp-mocha":"1.0.0","gulp-plumber":"0.6.6","gulp-sourcemaps":"1.2.4","gulp-util":"3.0.1","gulp-webserver":"0.8.0","habitat":"3.0.0","merge-stream":"0.1.6","mockrequire":"0.0.3","node-appcache-generator":"k88hudson/node-appcache-generator","node-static":"0.7.4","partialify":"3.1.1","tv4":"^1.1.4","gulp-template":"1.1.1","webmaker-download-locales":"0.2.4","gulp-autoprefixer":"^2.0.0","gulp-run":"^1.6.4","exorcist":"^0.1.6"}}};
-},{}],52:[function(require,module,exports){
+},{"./index.html":51}],53:[function(require,module,exports){
+module.exports = '<div class="wrapper" v-class="checked: checked, disabled: disabled">\n    <label>\n      <input type="checkbox" v-model="checked">\n    </label>\n    <div class="track"></div>\n</div>\n';
+},{}],54:[function(require,module,exports){
+module.exports = {
+    className: 'toggle',
+    template: require('./index.html'),
+    paramAttributes: ['disabled', 'checked'],
+    ready: function () {
+        // parse non booleans
+        // eg: values passed in as a "disabled" param instead of v-with
+        if (typeof this.disabled === 'string') {
+            this.disabled = this.disabled === 'true' ? true : false;
+        }
+    },
+    data: {}
+};
+
+},{"./index.html":53}],55:[function(require,module,exports){
+module.exports = {"LOGIN_URL":"https://login-dev.mofodev.net","PUBLISH_ENDPOINT":"https://webmaker-app-publisher.mofodev.net/publish/webmaker-app","PUBLISH_DEV_MODE":true,"OFFLINE":false,"FIREBASE_URL_DATA":"https://sizzling-inferno-3981.firebaseio.com","FIREBASE_URL":"https://webmaker-app-dev.firebaseio.com/mofodev","APPCACHE":false,"package":{"name":"webmaker","version":"0.0.13","repository":{"type":"git","url":"https://github.com/mozilla/webmaker-app"},"scripts":{"test":"gulp test","start":"gulp dev"},"main":"export.js","dependencies":{"page":"1.5.0","vue":"0.10.6","watchjs":"0.0.0","clone":"0.1.18","xhr":"1.16.1","firebase":"2.0.4","webmaker-login-ux":"1.3.4","font-awesome":"4.2.0","localforage":"1.1.1","lodash.throttle":"2.4.1","event-emitter":"0.3.1","fastclick":"1.0.3","sortable":"git://github.com/k88hudson/Sortable#webmaker-app","esprima":"^1.2.2"},"devDependencies":{"browserify":"6.3.2","bulk-require":"0.2.1","bulkify":"1.0.2","fs-extra":"0.11.1","glob":"4.0.5","gulp":"^3.8.8","gulp-exit":"0.0.2","gulp-jscs":"1.3.1","gulp-jshint":"1.8.4","gulp-less":"1.3.6","gulp-minify-css":"0.3.11","gulp-mocha":"1.0.0","gulp-plumber":"0.6.6","gulp-sourcemaps":"1.2.4","gulp-util":"3.0.1","gulp-webserver":"0.8.0","habitat":"3.0.0","merge-stream":"0.1.6","mockrequire":"0.0.3","node-appcache-generator":"k88hudson/node-appcache-generator","node-static":"0.7.4","partialify":"3.1.1","tv4":"^1.1.4","gulp-template":"1.1.1","webmaker-download-locales":"0.2.4","gulp-autoprefixer":"^2.0.0","gulp-run":"^1.6.4","exorcist":"^0.1.6"}}};
+},{}],56:[function(require,module,exports){
 var WebmakerLogin = require('webmaker-login-ux');
 var config = require('../config');
 
@@ -786,7 +905,7 @@ module.exports = function () {
     return auth;
 };
 
-},{"../config":51,"webmaker-login-ux":139}],53:[function(require,module,exports){
+},{"../config":55,"webmaker-login-ux":142}],57:[function(require,module,exports){
 var Vue = require('vue');
 
 module.exports = Vue.extend({
@@ -825,7 +944,7 @@ module.exports = Vue.extend({
     }
 });
 
-},{"vue":124}],54:[function(require,module,exports){
+},{"vue":127}],58:[function(require,module,exports){
 
 var clone = require('clone');
 
@@ -840,7 +959,7 @@ module.exports = function Blocks() {
     }
 };
 
-},{"/Users/k88hudson/github/webmaker-app/blocks/data/index.js":2,"/Users/k88hudson/github/webmaker-app/blocks/dropdown/index.js":4,"/Users/k88hudson/github/webmaker-app/blocks/image/index.js":6,"/Users/k88hudson/github/webmaker-app/blocks/input/index.js":8,"/Users/k88hudson/github/webmaker-app/blocks/phone/index.js":10,"/Users/k88hudson/github/webmaker-app/blocks/sms/index.js":12,"/Users/k88hudson/github/webmaker-app/blocks/spinner/index.js":14,"/Users/k88hudson/github/webmaker-app/blocks/submit/index.js":16,"/Users/k88hudson/github/webmaker-app/blocks/text/index.js":18,"clone":83}],55:[function(require,module,exports){
+},{"/Users/k88hudson/github/webmaker-app/blocks/data/index.js":2,"/Users/k88hudson/github/webmaker-app/blocks/dropdown/index.js":4,"/Users/k88hudson/github/webmaker-app/blocks/image/index.js":6,"/Users/k88hudson/github/webmaker-app/blocks/input/index.js":8,"/Users/k88hudson/github/webmaker-app/blocks/phone/index.js":10,"/Users/k88hudson/github/webmaker-app/blocks/sms/index.js":12,"/Users/k88hudson/github/webmaker-app/blocks/spinner/index.js":14,"/Users/k88hudson/github/webmaker-app/blocks/submit/index.js":16,"/Users/k88hudson/github/webmaker-app/blocks/text/index.js":18,"clone":86}],59:[function(require,module,exports){
 var Firebase = require('firebase');
 var config = require('../config');
 
@@ -957,16 +1076,7 @@ Data.prototype.delete = function (firebaseId) {
 
 module.exports = Data;
 
-},{"../config":51,"firebase":85}],56:[function(require,module,exports){
-var clone = require('clone');
-var json = clone(require('./templates.json'));
-
-module.exports = {
-    featured: json.splice(1, 5),
-    nearby: json.splice(5)
-};
-
-},{"./templates.json":64,"clone":83}],57:[function(require,module,exports){
+},{"../config":55,"firebase":88}],60:[function(require,module,exports){
 /**
  * Localization!
  *
@@ -1046,7 +1156,7 @@ function Localize () {
 
 module.exports = new Localize();
 
-},{"./model":59}],58:[function(require,module,exports){
+},{"./model":62}],61:[function(require,module,exports){
 /**
  * An app that makes apps.
  *
@@ -1062,6 +1172,7 @@ var router = require('./router');
 var model = require('./model')();
 var attachFastClick = require('fastclick');
 var Store = require('./storage');
+var restorePath = require('./restore-path');
 
 // Register views
 Vue.component('healthcheck', require('../views/healthcheck'));
@@ -1086,7 +1197,9 @@ var componentList = {
     alert: require('../components/alert'),
     dataRepresentation: require('../components/dataRepresentation'),
     switch: require('../components/switch'),
-    loadingIndicator: require('../components/loadingIndicator')
+    loadingIndicator: require('../components/loadingIndicator'),
+    contactPicker: require('../components/contactPicker'),
+    toggle: require('../components/toggle')
 };
 
 // Register localization
@@ -1141,7 +1254,10 @@ var app = new Vue({
 
             // Route
             router(app);
-
+            restorePath({
+                history: model.data.session && model.data.session.path,
+                offline: model.data.session.offline
+            });
         });
     },
     ready: function () {
@@ -1149,7 +1265,7 @@ var app = new Vue({
     }
 });
 
-},{"../components/alert":20,"../components/appCell":22,"../components/dataRepresentation":40,"../components/loadingIndicator":42,"../components/makeBar":44,"../components/navigationBar":46,"../components/switch":48,"../components/tabBar":50,"../locale":68,"../views/add":160,"../views/block":162,"../views/detail":164,"../views/discover":166,"../views/error":168,"../views/healthcheck":170,"../views/make":172,"../views/profile":176,"../views/share":178,"../views/sign-in":180,"../views/templates":182,"./i18n":57,"./model":59,"./router":62,"./storage":63,"fastclick":84,"vue":124}],59:[function(require,module,exports){
+},{"../components/alert":20,"../components/appCell":22,"../components/contactPicker":40,"../components/dataRepresentation":42,"../components/loadingIndicator":44,"../components/makeBar":46,"../components/navigationBar":48,"../components/switch":50,"../components/tabBar":52,"../components/toggle":54,"../locale":71,"../views/add":163,"../views/block":165,"../views/detail":167,"../views/discover":169,"../views/error":171,"../views/healthcheck":173,"../views/make":175,"../views/profile":179,"../views/share":181,"../views/sign-in":183,"../views/templates":185,"./i18n":60,"./model":62,"./restore-path":64,"./router":65,"./storage":66,"fastclick":87,"vue":127}],62:[function(require,module,exports){
 (function (global){
 /**
  * Data model provider.
@@ -1160,7 +1276,6 @@ var app = new Vue({
 
 var watch = require('watchjs').watch;
 var config = require('../config');
-var page = require('page');
 var localForage = require('localforage');
 var uuid = require('./uuid');
 
@@ -1279,7 +1394,6 @@ Model.prototype.restore = function (callback) {
             };
             if (self.data.session.offline) return;
             callback();
-            page('/sign-in');
         }
 
         var setup = false;
@@ -1354,7 +1468,7 @@ function instantiateModel (options) {
 module.exports = instantiateModel;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../config":51,"./auth":52,"./uuid":66,"localforage":92,"page":100,"watchjs":131}],60:[function(require,module,exports){
+},{"../config":55,"./auth":56,"./uuid":69,"localforage":95,"watchjs":134}],63:[function(require,module,exports){
 var config = require('../config');
 var xhr = require('xhr');
 
@@ -1382,7 +1496,7 @@ module.exports = function (id, user, cb) {
     });
 };
 
-},{"../config":51,"xhr":152}],61:[function(require,module,exports){
+},{"../config":55,"xhr":155}],64:[function(require,module,exports){
 (function (global){
 var page = require('page');
 
@@ -1425,10 +1539,9 @@ module.exports = function (options) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"page":100}],62:[function(require,module,exports){
+},{"page":103}],65:[function(require,module,exports){
 var page = require('page');
 var model = require('./model')();
-var restorePath = require('./restore-path');
 
 module.exports = function (app) {
     // Track history for session restoration
@@ -1443,7 +1556,7 @@ module.exports = function (app) {
         app.currentView = 'healthcheck';
     });
 
-    page('/sign-in', function () {
+    page('/', function () {
         app.$data.isReady = true;
         app.currentView = 'sign-in';
     });
@@ -1488,9 +1601,10 @@ module.exports = function (app) {
         app.params = e.params;
     });
 
-    page('/', '/sign-in');
-    // Cordova
-    page('/:platform/www/index.html', '/sign-in');
+    page('/sign-in', '/');
+
+    // // Cordova
+    page.redirect('/:platform/www/index.html', '/');
 
     // Configuration
     page('*', function () {
@@ -1506,7 +1620,7 @@ module.exports = function (app) {
     }, 250);
 };
 
-},{"./model":59,"./restore-path":61,"page":100}],63:[function(require,module,exports){
+},{"./model":62,"page":103}],66:[function(require,module,exports){
 var Firebase = require('firebase');
 var clone = require('clone');
 
@@ -1762,7 +1876,7 @@ Store.prototype.createApp = function createApp(options) {
 
 module.exports = Store;
 
-},{"../config":51,"./blocks":54,"./i18n":57,"./model":59,"./templates.json":64,"./utils":65,"clone":83,"firebase":85}],64:[function(require,module,exports){
+},{"../config":55,"./blocks":58,"./i18n":60,"./model":62,"./templates.json":67,"./utils":68,"clone":86,"firebase":88}],67:[function(require,module,exports){
 module.exports=[
     {
         "id": "blank",
@@ -1771,7 +1885,7 @@ module.exports=[
         "icon": "images/icons/scratch.svg",
         "description": "Choosing this option will allow you to create your own app without a preset template.",
         "iconImage": "images/icons/scratch.svg",
-        "iconColor" : "#1F9CDF",
+        "iconColor" : "#FF5C5A",
         "author": {
             "username": "",
             "location": "",
@@ -1786,7 +1900,7 @@ module.exports=[
         "description": "Have something to share with the world? Start a blog, customize to make it yours and start writing!",
         "icon": "images/icons/blog.svg",
         "iconImage": "images/icons/blog.svg",
-        "iconColor" : "#1F9CDF",
+        "iconColor" : "#97CC3B",
         "author": {
             "username": "Emma",
             "location": "",
@@ -1881,7 +1995,7 @@ module.exports=[
         "name": "Teacher",
         "icon": "images/icons/teach.svg",
         "iconImage": "images/icons/teach.svg",
-        "iconColor" : "#1e79da",
+        "iconColor" : "#F79131",
         "author": {
             "username": "Deepa",
             "location": "",
@@ -2283,10 +2397,10 @@ module.exports=[
         "id": "000d1745-5d3c-4997-ac0c-15df68bbbecc",
         "templateTitle": "Promote your Business",
         "description": "Show off your products and give customers an easy way to reach you.",
-        "name": "My Business",
+        "name": "Business",
         "icon": "images/icons/business.svg",
         "iconImage": "images/icons/business.svg",
-        "iconColor" : "#1F9CDF",
+        "iconColor" : "#F2C233",
         "author": {
             "username": "Yousuf",
             "location": "",
@@ -2446,7 +2560,7 @@ module.exports=[
                   "value" : "#638093"
                 },
                 "inputType" : {
-                  "label" : "Input Type",
+                  "label" : "Text Box Type",
                   "options" : [ "Single Line Text", "Long Text" ],
                   "type" : "dropdownChoice",
                   "value" : 0
@@ -2470,7 +2584,7 @@ module.exports=[
                   "value" : "#638093"
                 },
                 "inputType" : {
-                  "label" : "Input Type",
+                  "label" : "Text Box Type",
                   "options" : [ "Single Line Text", "Long Text" ],
                   "type" : "dropdownChoice",
                   "value" : 0
@@ -2512,7 +2626,7 @@ module.exports=[
         "description": "Share photos and write articles and about your local community",
         "icon": "images/placeholder_journalist.png",
         "iconImage": "images/journalist.png",
-        "iconColor" : "#d91fd6",
+        "iconColor" : "#DC8AEB",
         "author": {
             "username": "Rafid Daoud",
             "location": "",
@@ -2639,7 +2753,7 @@ module.exports=[
         "name": "How To",
         "icon": "images/placeholder_howto.png",
         "iconImage": "images/howto.png",
-        "iconColor" : "#e7ce17",
+        "iconColor" : "#8C8AEB",
         "author": {
             "username": "Deepa",
             "location": "",
@@ -2868,11 +2982,11 @@ module.exports=[
     {
         "id": "41e8be7e-4381-4afd-82ac-861171cd1111",
         "name": "Safety",
-        "templateTitle": "Safety App",
+        "templateTitle": "Create a Safety App",
         "description": "Add a map, a emergency call button, and other tips to keep safe in your community",
         "icon": "images/placeholder_safety.png",
         "iconImage": "images/safety.png",
-        "iconColor" : "#1e79da",
+        "iconColor" : "#27AAE1",
         "author": {
             "username": "Pedro",
             "location": "",
@@ -2909,7 +3023,7 @@ module.exports=[
     }
 ]
 
-},{}],65:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 module.exports = {
     // Converts object to array
     // If the values are objects, idKey (default _key) is the key
@@ -2965,7 +3079,7 @@ module.exports = {
     }
 };
 
-},{}],66:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 /**
  * Mad science micro-sized UUID (v4) module.
  *
@@ -3003,7 +3117,7 @@ module.exports = b;
 /* jshint ignore:end */
 // jscs:enable
 
-},{}],67:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 var Vue = require('vue');
 var clone = require('clone');
 
@@ -3030,9 +3144,9 @@ module.exports = Vue.extend({
     }
 });
 
-},{"./block":53,"./model":59,"/Users/k88hudson/github/webmaker-app/blocks/data/index.js":2,"/Users/k88hudson/github/webmaker-app/blocks/dropdown/index.js":4,"/Users/k88hudson/github/webmaker-app/blocks/image/index.js":6,"/Users/k88hudson/github/webmaker-app/blocks/input/index.js":8,"/Users/k88hudson/github/webmaker-app/blocks/phone/index.js":10,"/Users/k88hudson/github/webmaker-app/blocks/sms/index.js":12,"/Users/k88hudson/github/webmaker-app/blocks/spinner/index.js":14,"/Users/k88hudson/github/webmaker-app/blocks/submit/index.js":16,"/Users/k88hudson/github/webmaker-app/blocks/text/index.js":18,"clone":83,"page":100,"vue":124}],68:[function(require,module,exports){
-module.exports = {"bn-BD":{"Add a Brick":"Add a Brick","Guest Explanation":"Guests can build, but not publish apps.","Open":"Open","Create":"Create","My Profile":"আমার প্রফাইল","the web":"the web","you":"তুমি","You can create your own app. Just open a template and edit!":"আপনি আপনার নিজের অ্যাপ বানাতে পারেন। শুধুমাত্র একটি টেমপ্লেট খুলুন এবং সম্পাদনা করুন।!","Details":"বিস্তারিত","Get Started":"আসুন শুরু করি","Delete App":"Delete App","Share Community News":"Share Community News","Apps":"অ্যাপ","scientist":"scientist","Join Webmaker":"Join Webmaker","Preview":"প্রাকদর্শন","Family":"Family","Image":"ছবি","Sign In":"সাইন ইন","Safety":"Safety","Discover":"আবিষ্কার","Change":"Change","Make &amp; share the web":"Make &amp; share the web","errorAppNotFound":"Sorry, this app was not found. Go back to your <a href='/profile'>profile</a>?","Name":"নাম","Near Me":"Near Me","My Business":"My Business","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Untitled App","activists":"স্বেচ্ছাসেবক","Done":"করা হয়ে গেছে","Delete":"মুছুন","Apps I've Created":"আমার বানানো অ্যাপসমূহ","Phone":"Phone","Email":"ইমেইল","Activist":"Activist","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"মোজিলা ওয়েবমেকার এবং অন্যান্য প্রকল্প সম্পর্কে হালনাগাদ তথ্যের ইমেইল আমাকে পাঠাবেন","share_message":"Check out the app {{app.name}} I made with Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"My {{template}} App","Featured Apps":"Featured Apps","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> from <br/></span><strong>{{location}}</strong>","Text Colour":"Text Colour","students":"শিক্ষার্থী","Sorry, that name has already been snagged! Please try another.":"Sorry, that name has already been snagged! Please try another.","Create and share app templates with people all around the world":"অ্যাপের টেমপ্লেট বানান এবং পৃথিবীর সকলের সাথে তা শেয়ার করুন","Teacher":"Teacher","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"This device isn't connected to the internet, so you won't be able to publish any apps.","Message":"ম্যাসেজ","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"by {{name}}","Make an App":"Make an App","Remove":"সরান","Sign Out":"সাইন অউট","Delete my Apps":"Delete my Apps","Safety App":"Safety App","vendors":"বিক্রেতারা","Medic":"Medic","journalists":"সাংবাদিক","Journalist":"সাংবাদিক","parents":"অভিভাবক","Text Value":"Text Value","I agree to your terms and conditions":"I agree to your terms and conditions","My Apps":"My Apps","Cancel":"বাতিল করুন","Try in Offline Mode":"Try in Offline Mode","Guest":"Guest","Try as Guest":"Try as Guest","No Apps Message":"You don't have any apps yet.","Data":"Data","errorNoText":"You must include a text value","Select Color":"রং পছন্দ করুন","Location":"অবস্থান","Edit":"সম্পাদনা","Phone #":"Phone #","Save":"সংরক্ষণ","Publish":"প্রকাশ করুন","Choose a username":"ব্যবহারকারী হিসেবে একটি নাম বাছাই করুন","errorDefault":"Oops! There was an error. Go back to your <a href='/profile'>profile</a>?","Label":"লেবেল","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Edit my Profile","Apps made by _":"অ্যাপ বানিয়েছে: <span v-cycle=\\\"personas\\\"></span>","Place call":"কল করুন","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"অ্যাপ্লিকেশন","Make Your Own App":"Make Your Own App","Next":"পরবর্তি","App Name & Icon":"App Name & Icon","Share":"শেয়ার করুন","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"টেক্সট","teachers":"শিক্ষক","From Scratch":"From Scratch","error404":"Sorry, we couldn't find this page. Would you like to <a href='/sign-in'>go back to the start</a>?","How To":"How To","doctors":"চিকিৎসক","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"},"cs":{"Add a Brick":"Add a Brick","Guest Explanation":"Guests can build, but not publish apps.","Open":"Open","Create":"Create","My Profile":"Můj profil","the web":"the web","you":"vámi","You can create your own app. Just open a template and edit!":"Můžete tvořit vaše vlastní aplikace. Stačí otevřít šablonu a upravit!","Details":"Detaily","Get Started":"Začínáme","Delete App":"Delete App","Share Community News":"Share Community News","Apps":"Aplikace","scientist":"scientist","Join Webmaker":"Join Webmaker","Preview":"Náhled","Family":"Family","Image":"Obrázek","Sign In":"Přihlásit se","Safety":"Safety","Discover":"Objevit","Change":"Change","Make &amp; share the web":"Make &amp; share the web","errorAppNotFound":"Sorry, this app was not found. Go back to your <a href='/profile'>profile</a>?","Name":"Název","Near Me":"Near Me","My Business":"My Business","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Untitled App","activists":"aktivisty","Done":"Hotovo","Delete":"Smazat","Apps I've Created":"Aplikace, které jsem vytvořil","Phone":"Phone","Email":"E-mail","Activist":"Activist","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"Povolit zasílání e-mailových aktualizací o Mozilla Webmakeru a dalších projektech","share_message":"Check out the app {{app.name}} I made with Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"My {{template}} App","Featured Apps":"Featured Apps","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> from <br/></span><strong>{{location}}</strong>","Text Colour":"Text Colour","students":"studenty","Sorry, that name has already been snagged! Please try another.":"Sorry, that name has already been snagged! Please try another.","Create and share app templates with people all around the world":"Tvorba a sdílení šablon aplikace s lidmi na celém světě","Teacher":"Teacher","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"This device isn't connected to the internet, so you won't be able to publish any apps.","Message":"Message","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"by {{name}}","Make an App":"Make an App","Remove":"Odstranit","Sign Out":"Sign Out","Delete my Apps":"Delete my Apps","Safety App":"Safety App","vendors":"prodejci","Medic":"Medic","journalists":"žurnalisty","Journalist":"Žurnalista","parents":"rodiči","Text Value":"Text Value","I agree to your terms and conditions":"I agree to your terms and conditions","My Apps":"My Apps","Cancel":"Zrušit","Try in Offline Mode":"Try in Offline Mode","Guest":"Guest","Try as Guest":"Try as Guest","No Apps Message":"You don't have any apps yet.","Data":"Data","errorNoText":"You must include a text value","Select Color":"Vybrat barvu","Location":"Místo","Edit":"Upravit","Phone #":"Phone #","Save":"Uložit","Publish":"Publikování","Choose a username":"Zvolte uživatelské jméno","errorDefault":"Oops! There was an error. Go back to your <a href='/profile'>profile</a>?","Label":"Label","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Edit my Profile","Apps made by _":"Aplikace vytvořeny: <span v-cycle=\"personas\"></span>","Place call":"Place call","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"App","Make Your Own App":"Make Your Own App","Next":"Další","App Name & Icon":"App Name & Icon","Share":"Sdílet","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"Text","teachers":"učiteli","From Scratch":"From Scratch","error404":"Sorry, we couldn't find this page. Would you like to <a href='/sign-in'>go back to the start</a>?","How To":"How To","doctors":"doktory","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"},"en-CA":{"Add a Brick":"Add a Brick","Guest Explanation":"Guests can build, but not publish apps.","Open":"Open","Create":"Create","My Profile":"My Profile","the web":"the web","you":"you","You can create your own app. Just open a template and edit!":"You can create your own app. Just open a template and edit!","Details":"Details","Get Started":"Get Started","Delete App":"Delete App","Share Community News":"Share Community News","Apps":"Apps","scientist":"scientist","Join Webmaker":"Join Webmaker","Preview":"Preview","Family":"Family","Image":"Image","Sign In":"Sign In","Safety":"Safety","Discover":"Discover","Change":"Change","Make &amp; share the web":"Make &amp; share the web","errorAppNotFound":"Sorry, this app was not found. Go back to your <a href='/profile'>profile</a>?","Name":"Name","Near Me":"Near Me","My Business":"My Business","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Untitled App","activists":"activists","Done":"Done","Delete":"Delete","Apps I've Created":"Apps I've Created","Phone":"Phone","Email":"Email","Activist":"Activist","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"Send me email updates about Mozilla Webmaker and other projects","share_message":"Check out the app {{app.name}} I made with Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"My {{template}} App","Featured Apps":"Featured Apps","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> from <br/></span><strong>{{location}}</strong>","Text Colour":"Text Colour","students":"students","Sorry, that name has already been snagged! Please try another.":"Sorry, that name has already been snagged! Please try another.","Create and share app templates with people all around the world":"Create and share app templates with people all around the world","Teacher":"Teacher","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"This device isn't connected to the internet, so you won't be able to publish any apps.","Message":"Message","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"by {{name}}","Make an App":"Make an App","Remove":"Remove","Sign Out":"Sign Out","Delete my Apps":"Delete my Apps","Safety App":"Safety App","vendors":"vendors","Medic":"Medic","journalists":"journalists","Journalist":"Journalist","parents":"parents","Text Value":"Text Value","I agree to your terms and conditions":"I agree to your terms and conditions","My Apps":"My Apps","Cancel":"Cancel","Try in Offline Mode":"Try in Offline Mode","Guest":"Guest","Try as Guest":"Try as Guest","No Apps Message":"You don't have any apps yet.","Data":"Data","errorNoText":"You must include a text value","Select Color":"Select Colour","Location":"Location","Edit":"Edit","Phone #":"Phone #","Save":"Save","Publish":"Publish","Choose a username":"Choose a username","errorDefault":"Oops! There was an error. Go back to your <a href='/profile'>profile</a>?","Label":"Label","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Edit my Profile","Apps made by _":"Apps made by: <span v-cycle=\"personas\"></span>","Place call":"Place call","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"App","Make Your Own App":"Make Your Own App","Next":"Next","App Name & Icon":"App Name & Icon","Share":"Share","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"Text","teachers":"teachers","From Scratch":"From Scratch","error404":"Sorry, we couldn't find this page. Would you like to <a href='/sign-in'>go back to the start</a>?","How To":"How To","doctors":"doctors","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"},"en-US":{"Add a Brick":"Add a Brick","scientist":"scientist","errorNoText":"You must include a text value","My Profile":"My Profile","Edit my Profile":"Edit my Profile","you":"you","You can create your own app. Just open a template and edit!":"You can create your own app. Just open a template and edit!","Details":"Details","Get Started":"Get Started","Apps":"Apps","My Apps":"My Apps","by _":"by {{name}}","Image":"Image","Name":"Name","App Name & Icon":"App Name & Icon","activists":"activists","Apps I've Created":"Apps I've Created","Make Your Own App":"Make Your Own App","Make an App":"Make an App","SMS":"SMS","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> from <br/></span><strong>{{location}}</strong>","students":"students","Create and share app templates with people all around the world":"Create and share app templates with people all around the world","Remove":"Remove","Delete":"Delete","vendors":"vendors","journalists":"journalists","Journalist":"Journalist","My Business":"My Business","From Scratch":"From Scratch","Teacher":"Teacher","Medic":"Medic","How To":"How To","Family":"Family","Blogger":"Blogger","Club":"Club","Safety":"Safety","Activist":"Activist","parents":"parents","Select Color":"Select Color","Location":"Location","Edit":"Edit","Apps made by _":"Apps made by: <span v-cycle=\"personas\"></span>","Next":"Next","Preview":"Preview","Text":"Text","teachers":"teachers","doctors":"doctors","Message":"Message","Place call":"Place call","Sign In":"Sign In","Try as Guest":"Try as Guest","Guest":"Guest","Guest Explanation":"Guests can build, but not publish apps.","Try in Offline Mode":"Try in Offline Mode","Offline Mode Explanation":"This device isn't connected to the internet, so you won't be able to publish any apps.","Sign Out":"Sign Out","Delete App":"Delete App","Delete my Apps":"Delete my Apps","Untitled App":"Untitled App","Text Value":"Text Value","Text Colour":"Text Colour","Phone":"Phone","Phone #":"Phone #","Label":"Label","Email":"Email","Choose a username":"Choose a username","Send me email updates about Mozilla Webmaker and other projects":"Send me email updates about Mozilla Webmaker and other projects","I agree to your terms and conditions":"I agree to your terms and conditions","Change":"Change","share_message":"Check out the app {{app.name}} I made with Mozilla Webmaker","App":"App","Cancel":"Cancel","Done":"Done","No Apps Message":"You don't have any apps yet.","Featured Apps":"Featured Apps","Near Me":"Near Me","Sorry, that name has already been snagged! Please try another.":"Sorry, that name has already been snagged! Please try another.","error404":"Sorry, we couldn't find this page. Would you like to <a href='/sign-in'>go back to the start</a>?","errorAppNotFound":"Sorry, this app was not found. Go back to your <a href='/profile'>profile</a>?","errorDefault":"Oops! There was an error. Go back to your <a href='/profile'>profile</a>?","Discover":"Discover","Make &amp; share the web":"Make &amp; share the web","the web":"the web","Share":"Share","Open":"Open","Create":"Create","Data":"Data","Publish":"Publish","Join Webmaker":"Join Webmaker","My {{template}} App":"My {{template}} App","Save":"Save","Start from Scratch":"Start from Scratch","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Create a Blog":"Create a Blog","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Build a Lesson Plan":"Build a Lesson Plan","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Share Community News":"Share Community News","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","Create a How To Guide":"Create a How To Guide","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Safety App":"Safety App","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community"},"es-CL":{"Add a Brick":"Añadir un bloque","Guest Explanation":"Los invitados pueden crear apps, pero no publicarlas.","Open":"Abrir","Create":"Crear","My Profile":"Mi perfil","the web":"la web","you":"ti","You can create your own app. Just open a template and edit!":"Puedes crear tu propia app. ¡Solo abre una plantilla y edítala!","Details":"Detalles","Get Started":"Comenzar","Delete App":"Eliminar app","Share Community News":"Comparte noticias de la comunidad","Apps":"Apps","scientist":"científico","Join Webmaker":"Unirse a Webmaker","Preview":"Previsualización","Family":"Familia","Image":"Imagen","Sign In":"Conectarse","Safety":"Seguridad","Discover":"Descubrir","Change":"Cambiar","Make &amp; share the web":"Crear  y compartir la web","errorAppNotFound":"Lo sentimos, esta app no fue encontrada. ¿Regresar a tu <a href='/profile'>perfil</a>?","Name":"Nombre","Near Me":"Cerca de mi","My Business":"Mi negocio","Choosing this option will allow you to create your own app without a preset template.":"Elegir esta opción te permitirá crear tu propia app sin hacer uso de una plantilla","Untitled App":"App sin título","activists":"activistas","Done":"Hecho","Delete":"Eliminar","Apps I've Created":"Apps que he creado","Phone":"Teléfono","Email":"Correo","Activist":"Activista","SMS":"SMS","Create a Blog":"Crear un Blog","Send me email updates about Mozilla Webmaker and other projects":"Enviarme correos con las novedades de Mozilla Webmaker y otros proyectos","share_message":"Revisa la app {{app.name}} que creé con Mozilla Webmaker","Blogger":"Bloguero","My {{template}} App":"Mi app de {{template}}","Featured Apps":"Apps destacadas","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> de <br/></span><strong>{{location}}</strong>","Text Colour":"Color del texto","students":"estudiantes","Sorry, that name has already been snagged! Please try another.":"Lo sentimos, ¡ese nombre ya ha sido agarrado! Por favor, prueba con otro.","Create and share app templates with people all around the world":"Crea y comparte plantillas de apps con personas de todo el mundo","Teacher":"Profesor","Start from Scratch":"Empezar de cero","Offline Mode Explanation":"Este dispositivo no está conectado a Internet, por lo que no podrás publicar aplicaciones.","Message":"Mensaje","Share photos and write articles and about your local community":"Comparte fotos y escribe artículos sobre tu comunidad local","by _":"por {{name}}","Make an App":"Crear una app","Remove":"Remover","Sign Out":"Salir","Delete my Apps":"Borrar mis apps","Safety App":"App de seguridad","vendors":"proveedores","Medic":"Médico","journalists":"periodistas","Journalist":"Periodista","parents":"padres","Text Value":"Valor del texto","I agree to your terms and conditions":"Acepto sus términos y condiciones","My Apps":"Mis apps","Cancel":"Cancelar","Try in Offline Mode":"Probar en modo sin conexión","Guest":"Invitado","Try as Guest":"Probar como invitado","No Apps Message":"En este momento no tienes ninguna app.","Data":"Datos","errorNoText":"Debes incluir un valor de texto","Select Color":"Seleccionar color","Location":"Ubicación","Edit":"Editar","Phone #":"Número de teléfono","Save":"Guardar","Publish":"Publicar","Choose a username":"Escoge un nombre de usuario","errorDefault":"¡Chuta! Ocurrio un error. ¿Regresar a tu <a href='/profile'>perfil</a>?","Label":"Etiqueta","Create a How To Guide":"Crea una guía \"Hágalo usted mismo\"","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"¿Tienes algo para compartir con el mundo? Inicia un blog, personalizalo para hacerlo tuyo y ¡empieza a escribir!","Edit my Profile":"Editar mi perfil","Apps made by _":"Apps creadas por: <span v-cycle=\"personas\"></span>","Place call":"Realizar llamada","If you've got unique skills you'd like to share with others, try making a How To guide.":"Si tienes habilidades únicas que quieres compartir con otros, intenta hacer una guía Hágalo usted mismo.","Add a map, a emergency call button, and other tips to keep safe in your community":"Añade un mapa, un botón de llamada de emergencia y otros consejos para mantenerse seguro en tu comunidad","App":"App","Make Your Own App":"Crea tu propia App","Next":"Siguiente","App Name & Icon":"Nombre de la app e ícono","Share":"Compartir","Promote your Business":"Promueve tu negocio","Show off your products and give customers an easy way to reach you.":"Muestra tus productos y dale a los consumidores una forma fácil de encontrarte.","Build a Lesson Plan":"Crea una planificación de clases","Text":"Texto","teachers":"profesores","From Scratch":"De cero","error404":"Lo sentimos, no pudimos encontrar esta página. ¿Te gustaría <a href='/sign-in'>regresar al inicio</a>?","How To":"Tutorial","doctors":"doctores","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"Si quieres compartir tus habilidades con otros, crea un plan de clases móvil y enseña lo que sabes"},"es-MX":{"Add a Brick":"Agregar un bloque","Guest Explanation":"Los invitados pueden construir aplicaciones pero no las pueden publicar.","Open":"Abrir","Create":"Crear","My Profile":"Mi perfil","the web":"la web","you":"tú","You can create your own app. Just open a template and edit!":"Puedes crear tu propia aplicación; solo tiene que abrir una plantilla y editar.","Details":"Detalles","Get Started":"Comenzar","Delete App":"Eliminar App","Share Community News":"Share Community News","Apps":"Aplicaciones","scientist":"científico","Join Webmaker":"Únete a Webmaker","Preview":"Vista preliminar","Family":"Familia","Image":"Imagen","Sign In":"Conectar","Safety":"Seguridad","Discover":"Descubre","Change":"Cambiar","Make &amp; share the web":"Make &amp; share the web","errorAppNotFound":"Lo sentimos, pero no se pudo encontrar esa aplicación. ¿Quieres regresar a tu <a href='/profile'>perfil</a>?","Name":"Nombre","Near Me":"Cerca de mí","My Business":"My Business","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"App Sin Título","activists":"activistas","Done":"Terminado","Delete":"Eliminar","Apps I've Created":"Aplicaciones que he creado","Phone":"Teléfono","Email":"Correo electrónico","Activist":"Activista","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"Envíame un correo electrónico con las actualizaciones más recientes de Mozilla Webmaker y de otros proyectos.","share_message":"Revisa la aplicación {{app.name}} que creé con Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"Mi aplicación {{template}}","Featured Apps":"Aplicaciones destacadas","Club":"Club","name from location":"<strong>{{name}}</strong><span v-if=\"location\"><br/> de <br/></span><strong>{{location}}</strong>","Text Colour":"Color del Texto","students":"estudiantes","Sorry, that name has already been snagged! Please try another.":"Lo sentimos pero este nombre ya ha sido tomado. Por favor, escoge otro.","Create and share app templates with people all around the world":"Crea y comparte plantillas de aplicaciones con gente de todo el mundo","Teacher":"Maestro","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"Este dispositivo no está conectado al Internet así que no podrás publicar ninguna aplicación.","Message":"Mensaje","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"por {{nombre}}","Make an App":"Crear una aplicación","Remove":"Eliminar","Sign Out":"Cerrar sesión","Delete my Apps":"Borrar mis aplicaciones","Safety App":"Safety App","vendors":"proveedores","Medic":"Médico","journalists":"periodistas","Journalist":"Periodista","parents":"padres","Text Value":"Valor del Texto","I agree to your terms and conditions":"Acepto los términos y condiciones","My Apps":"Mis aplicaciones","Cancel":"Cancelar","Try in Offline Mode":"Probar en modo fuera de línea","Guest":"Invitado","Try as Guest":"Pruébalo como invitado","No Apps Message":"No tienes ninguna aplicación todavía.","Data":"Datos","errorNoText":"Debes incluir un valor de texto","Select Color":"Seleccionar color","Location":"Ubicación","Edit":"Editar","Phone #":"# de Teléfono","Save":"Guardar","Publish":"Publicar","Choose a username":"Elige tu nombre de usuario","errorDefault":"¡Ups! Hubo un error. ¿Quieres regresar a tu <a href='/profile'>profile</a>?","Label":"Etiqueta","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Editar mi perfil","Apps made by _":"Aplicaciones realizadas por: <span v-cycle=\"personas\"></span>","Place call":"Hacer una llamada","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"Aplicación","Make Your Own App":"Make Your Own App","Next":"Siguiente","App Name & Icon":"El nombre de la aplicación y el ícono","Share":"Compartir","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"Texto","teachers":"profesores","From Scratch":"Empezar de cero","error404":"Lo sentimos, pero no pudimos encontrar esa página. ¿Quieres <a href='/sign-in'>volver al inicio</a>?","How To":"Cómo","doctors":"doctores","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"},"fr":{"Add a Brick":"Ajouter une brique","Guest Explanation":"Les Invités peuvent développer des applications, mais ne peuvent les publier.","Open":"Ouvrir","Create":"Créer","My Profile":"Mon profil","the web":"le web","you":"vous","You can create your own app. Just open a template and edit!":"Vous pouvez créer votre propre app. Il suffit d'ouvrir le modèle et de le modifier !","Details":"Détails","Get Started":"Commencer","Delete App":"Effacer l'application","Share Community News":"Share Community News","Apps":"Applications","scientist":"scientifique","Join Webmaker":"Rejoignez Webmaker","Preview":"Aperçu","Family":"Famille","Image":"Image","Sign In":"Connexion","Safety":"Sécurité","Discover":"Explorer","Change":"Modifier","Make &amp; share the web":"Créez & partagez le Web","errorAppNotFound":"Désolé, l'application est introuvable. Souhaitez-vous revenir à votre <a href='/profile'>profil</a>?","Name":"Nom","Near Me":"Près de moi","My Business":"My Business","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Application sans titre","activists":"activistes","Done":"Terminé","Delete":"Supprimer","Apps I've Created":"Applis que j'ai créées","Phone":"Téléphone","Email":"Adresse électronique","Activist":"Activiste","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"M'avertir des mises à jour pour Mozilla Webmaker et autres projets","share_message":"Venez voir l'application \"{{app.name}}\" que j'ai créée avec Mozilla Webmaker","Blogger":"Bloggueur","My {{template}} App":"Mon {{template}} Application","Featured Apps":"Applications sélectionnées","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> de <br/></span><strong>{{location}}</strong>","Text Colour":"Couleur du texte","students":"étudiants","Sorry, that name has already been snagged! Please try another.":"Désolé, ce nom est déjà utilisé! Veuillez utiliser un nom différent.","Create and share app templates with people all around the world":"Créer et partager app modèles avec des personnes autour du monde","Teacher":"Enseignant","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"Cet appareil n'étant pas connecté à internet, vous ne pourrez pas publier d'application.","Message":"Message","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"par {{name}}","Make an App":"Créer une Appli","Remove":"Supprimer","Sign Out":"Déconnexion","Delete my Apps":"Supprimer mes Applis","Safety App":"Safety App","vendors":"vendeurs","Medic":"Médical","journalists":"journalistes","Journalist":"Journaliste","parents":"parents","Text Value":"Texte","I agree to your terms and conditions":"J'accepte les termes et les conditions d'utilisation","My Apps":"Mes Applis","Cancel":"Annuler","Try in Offline Mode":"Essayer en mode Hors Ligne","Guest":"Invité","Try as Guest":"Essayer en tant qu'Invité","No Apps Message":"Vous n'avez aucune application.","Data":"Données","errorNoText":"Vous devez inclure du texte","Select Color":"Sélectionner une couleur","Location":"Habite à","Edit":"Modifier","Phone #":"No de téléphone","Save":"Enregistrer","Publish":"Publier","Choose a username":"Choisissez un nom d'utilisateur","errorDefault":"Oups! Une erreur s'est produite. Souhaitez-vous revenir à votre <a href='/profile'>profil</a>?","Label":"Intitulé","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Modifier mon profil","Apps made by _":"Applis créées par : <span v-cycle=\"personas\"></span>","Place call":"Passer un appel","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"Application","Make Your Own App":"Make Your Own App","Next":"Suivant","App Name & Icon":"Nom et icône de l'App","Share":"Partager","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"Texte","teachers":"enseignants","From Scratch":"Démarrer de zéro","error404":"Désolé, la page demandée n'a pas pu être trouvée. Souhaitez vous <a href='/sign-in'>revenir à l'accueil</a>?","How To":"Tutoriel","doctors":"docteurs","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"},"id":{"Add a Brick":"Tambahkan Bata","Guest Explanation":"Tamu dapat membuat, tapi tidak mempublikasikan aplikasi.","Open":"Buka","Create":"Ciptakan","My Profile":"Profil Saya","the web":"web","you":"Anda","You can create your own app. Just open a template and edit!":"Anda dapat membuat aplikasi Anda sendiri. Cukup dengan membuka sebuah contoh dan edit!","Details":"Detail","Get Started":"Mulai","Delete App":"Hapus Aplikasi","Share Community News":"Share Community News","Apps":"Aplikasi","scientist":"ilmuwan","Join Webmaker":"Bergabung dengan Webmaker","Preview":"Pratinjau","Family":"Keluarga","Image":"Gambar","Sign In":"Masuk","Safety":"Keselamatan","Discover":"Jajaki","Change":"Ubah","Make &amp; share the web":"Buat &amp; berbagi dengan web","errorAppNotFound":"Maaf, aplikasi ini tidak ditemukan. Kembali ke <a href='/profile'>profil</a> Anda?","Name":"Nama","Near Me":"Dekat Saya","My Business":"My Business","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Aplikasi Tanpa Nama","activists":"aktivis","Done":"Selesai","Delete":"Hapus","Apps I've Created":"Aplikasi Buatan Saya","Phone":"Telepon","Email":"Surel","Activist":"Aktivis","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"Kirimi saya kabar terbaru tentang Mozilla Webmaker dan proyek lainnya","share_message":"Lihatlah aplikasi {{app.name}} yang saya buat dengan Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"Aplikasi {{template}} Saya","Featured Apps":"Aplikasi Unggulan","Club":"Klub","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> dari <br/></span><strong>{{location}}</strong>","Text Colour":"Warna Text","students":"pelajar","Sorry, that name has already been snagged! Please try another.":"Maaf, nama itu telah disambar! Silakan coba yang lain.","Create and share app templates with people all around the world":"Buat dan bagikan contoh aplikasi kepada orang-orang diseluruh dunia","Teacher":"Guru","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"Peranti ini tidak tersambung ke internet, Anda tidak dapat mempublikasikan aplikasi apapun. ","Message":"Pesan","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"oleh {{name}}","Make an App":"Buat Aplikasi","Remove":"Buang","Sign Out":"Keluar","Delete my Apps":"Hapus Aplikasi saya","Safety App":"Safety App","vendors":"penjual","Medic":"Kesehatan","journalists":"jurnalis","Journalist":"Jurnalis","parents":"orang tua","Text Value":"Nilai Text","I agree to your terms and conditions":"Saya setuju dengan syarat dan ketentuan anda","My Apps":"Aplikasi Saya","Cancel":"Batal","Try in Offline Mode":"Cobalah dalam Mode Luring","Guest":"Tamu","Try as Guest":"Coba sebagai Tamu","No Apps Message":"Anda belum punya aplikasi.","Data":"Data","errorNoText":"Anda harus sertakan nilai teks","Select Color":"Pilih Warna","Location":"Lokasi","Edit":"Edit","Phone #":"Telepon #","Save":"Simpan","Publish":"Terbitkan","Choose a username":"Pilih nama pengguna","errorDefault":"Ups! Terjadi galat. Kembali ke <a href='/profile'>profil</a> Anda?","Label":"Label","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Edit Profil saya","Apps made by _":"Aplikasi dibuat oleh: <span v-cycle=\"personas\"></span>","Place call":"Letakkan panggilan","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"Aplikasi","Make Your Own App":"Make Your Own App","Next":"Selanjutnya","App Name & Icon":"Nama dan Ikon Aplikasi","Share":"Bagikan","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"Teks","teachers":"guru","From Scratch":"Dari Awal","error404":"Maaf, kami tidak menemukan laman ini. Apakah anda ingin <a href='/sign-in'>kembali ke awal</a>?","How To":"Instruksi","doctors":"dokter","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"},"nl":{"Add a Brick":"Een bouwsteen toevoegen","Guest Explanation":"Gasten kunnen Apps maken, maar niet publiceren.","Open":"Open","Create":"Maak","My Profile":"Mijn profiel","the web":"het web","you":"u","You can create your own app. Just open a template and edit!":"U kunt uw eigen app maken. Open gewoon een sjabloon en bewerk deze!","Details":"Details","Get Started":"Begin nu","Delete App":"Verwijder de App","Share Community News":"Deel nieuws van de gemeenschap","Apps":"Apps","scientist":"wetenschapper","Join Webmaker":"Meld u aan bij Webmaker","Preview":"Voorbeeld","Family":"Familie","Image":"Afbeelding","Sign In":"Log In","Safety":"Veiligheid","Discover":"Ontdekken","Change":"Wijzig","Make &amp; share the web":"Maak en deel het web","errorAppNotFound":"Sorry, deze App is niet gevonden. Ga terug naar uw <a href='/profile'>profiel</a>?","Name":"Naam","Near Me":"Dicht bij mij","My Business":"Mijn zaken","Choosing this option will allow you to create your own app without a preset template.":"Met deze optie kunt u uw eigen app maken zonder een sjabloon.","Untitled App":"Naamloze App","activists":"activisten","Done":"Klaar","Delete":"Verwijderen","Apps I've Created":"Apps die ik heb gemaakt","Phone":"Telefoon","Email":"E-mailadres","Activist":"Activist","SMS":"sms","Create a Blog":"Maak een blog","Send me email updates about Mozilla Webmaker and other projects":"Stuur mij e-mailupdates over Mozilla Webmaker en andere projecten","share_message":"Kijk eens naar deze app {{app.name}} die ik gemaakt heb met Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"Mijn {{template}} App","Featured Apps":"Uitgelichte Apps","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> uit <br/></span><strong>{{location}}</strong>","Text Colour":"Tekstkleur","students":"studenten","Sorry, that name has already been snagged! Please try another.":"Sorry, die naam is al door iemand anders gebruikt! Probeer een andere.","Create and share app templates with people all around the world":"Maak en deel app-sjablonen met mensen van over de hele wereld","Teacher":"Leraar","Start from Scratch":"Begin opnieuw","Offline Mode Explanation":"Dit apparaat is niet verbonden met het internet, dus u zult geen Apps kunnen publiceren.","Message":"Bericht","Share photos and write articles and about your local community":"Deel foto's en schrijf artikelen over uw lokale gemeenschap","by _":"door {{name}}","Make an App":"Maak een App","Remove":"Verwijder","Sign Out":"Afmelden","Delete my Apps":"Verwijder mijn Apps","Safety App":"Veiligheidsapp","vendors":"uitgevers","Medic":"Dokter","journalists":"journalisten","Journalist":"Journalist","parents":"ouders","Text Value":"Tekstwaarde","I agree to your terms and conditions":"Ik ga akkoord met de voorwaarden","My Apps":"Mijn Apps","Cancel":"Annuleren","Try in Offline Mode":"Probeer in offlinemodus","Guest":"Gast","Try as Guest":"Probeer als een gast","No Apps Message":"U heeft nog geen apps.","Data":"Gegevens","errorNoText":"U moet een tekstwaarde invullen","Select Color":"Selecteer een kleur","Location":"Locatie","Edit":"Bewerken","Phone #":"Telefoon #","Save":"Opslaan","Publish":"Publiceren","Choose a username":"Kies een gebruikersnaam","errorDefault":"Oeps! Er was een fout. Ga terug naar uw <a href='/profile'>profiel</a>?","Label":"Label","Create a How To Guide":"Maak een handleiding","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Heeft u de wereld iets te vertellen? Start een blog, pas het aan om het van uzelf te maken en start met schrijven.","Edit my Profile":"Mijn profiel bewerken","Apps made by _":"Apps gemaakt door: <span v-cycle=\"personas\"></span>","Place call":"Nummer bellen","If you've got unique skills you'd like to share with others, try making a How To guide.":"Als u unieke vaardigheden bezit die u met anderen wilt delen, maak dan eens een handleiding.","Add a map, a emergency call button, and other tips to keep safe in your community":"Voeg een kaart toe, of een knop voor hulpdiensten en andere tips om veilig te blijven in uw gemeenschap","App":"App","Make Your Own App":"Maak uw eigen App","Next":"Volgende","App Name & Icon":"App-naam & -icoon","Share":"Delen","Promote your Business":"Promoot uw zaken","Show off your products and give customers an easy way to reach you.":"Toon uw producten en geef klanten een gemakkelijke manier om u te bereiken,","Build a Lesson Plan":"Maak een lesplan","Text":"Tekst","teachers":"onderwijzers","From Scratch":"Helemaal opnieuw","error404":"Sorry, wij konden deze pagina niet vinden. Zou u <a href='/sign-in'>terug naar het begin</a> willen gaan?","How To":"Hoe","doctors":"dokters","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"Als u uw vaardigheden wilt delen met anderen, maak dan een mobiel lesplan en onderwijs wat u weet"},"sv":{"Add a Brick":"Add a Brick","Guest Explanation":"Gäster kan bygga, men inte publicera appar.","Open":"Öppna","Create":"Skapa","My Profile":"Min profil","the web":"Webben","you":"dig","You can create your own app. Just open a template and edit!":"Du kan skapa din egna app. Öppna bara en mall och editera!","Details":"Detaljer","Get Started":"Kom igång","Delete App":"Radera App","Share Community News":"Share Community News","Apps":"Appar","scientist":"forskare","Join Webmaker":"Gå med i Webmaker","Preview":"Förhandsgranska","Family":"Familj","Image":"Bild","Sign In":"Logga In","Safety":"Säkerhet","Discover":"Upptäck","Change":"Ändra","Make &amp; share the web":"Make &amp; share the web","errorAppNotFound":"Ursäkta, den här appen gick inte att hitta. Gå tillbaka till din <a href='/profile'>profil</a>?","Name":"Namn","Near Me":"Nära Mig","My Business":"My Business","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Ej namngiven App","activists":"aktivister ","Done":"Färdig","Delete":"Ta bort","Apps I've Created":"Appar jag har skapat","Phone":"Telefon","Email":"Epost","Activist":"Aktivist","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"Skicka mig email-uppdateringar om Mozilla Webmaker och andra projekt","share_message":"Kolla in appen {{app.name}} som jag gjorde med Mozilla Webmaker","Blogger":"Bloggare","My {{template}} App":"Min {{mall}} App","Featured Apps":"Presenterade Appar","Club":"Klubb","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> från <br/></span><strong>{{location}}</strong>","Text Colour":"Textfärg","students":"studenter","Sorry, that name has already been snagged! Please try another.":"Ursäkta, det namnet är redan taget! Försök med ett annat.","Create and share app templates with people all around the world":"Skapa och dela app mallar med folk runt om i världen","Teacher":"Lärare","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"Den här enheten är inte uppkopplad till internet, så du kan inte publicera några appar.","Message":"Meddelande ","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"av {{name}}","Make an App":"Gör en App","Remove":"Radera","Sign Out":"Logga Ut","Delete my Apps":"Radera mina Appar","Safety App":"Safety App","vendors":"utvecklare","Medic":"Läkare","journalists":"journalister","Journalist":"Journalist","parents":"föräldrar","Text Value":"Textvärde","I agree to your terms and conditions":"Jag går med på dina villkor","My Apps":"Mina Appar","Cancel":"Avbryt","Try in Offline Mode":"Försök i Offline Läge","Guest":"Gäst","Try as Guest":"Försök som Gäst","No Apps Message":"Du har inga appar ännu.","Data":"Data","errorNoText":"You must include a text value","Select Color":"Välj Färg","Location":"Område","Edit":"Redigera","Phone #":"Telefon #","Save":"Spara","Publish":"Publicera ","Choose a username":"Välj ett användarnamn","errorDefault":"Oops! Det blev ett fel. Gå tillbaka till din <a href='/profile'>profil</a>?","Label":"Etikett","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Redigera min Profil","Apps made by _":"Appar gjorda av: <span v-cycle=\"personas\"></span>","Place call":"Samtal","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"App","Make Your Own App":"Make Your Own App","Next":"Nästa","App Name & Icon":"App Name & Icon","Share":"Dela","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"Text","teachers":"lärare","From Scratch":"Från Början","error404":"Ursäkta, vi kunde inte hitta sidan. Vill ni <a href='/sign-in'>gå tillbaka till start</a>?","How To":"Hur Man Gör","doctors":"doktorer","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"}};
-},{}],69:[function(require,module,exports){
+},{"./block":57,"./model":62,"/Users/k88hudson/github/webmaker-app/blocks/data/index.js":2,"/Users/k88hudson/github/webmaker-app/blocks/dropdown/index.js":4,"/Users/k88hudson/github/webmaker-app/blocks/image/index.js":6,"/Users/k88hudson/github/webmaker-app/blocks/input/index.js":8,"/Users/k88hudson/github/webmaker-app/blocks/phone/index.js":10,"/Users/k88hudson/github/webmaker-app/blocks/sms/index.js":12,"/Users/k88hudson/github/webmaker-app/blocks/spinner/index.js":14,"/Users/k88hudson/github/webmaker-app/blocks/submit/index.js":16,"/Users/k88hudson/github/webmaker-app/blocks/text/index.js":18,"clone":86,"page":103,"vue":127}],71:[function(require,module,exports){
+module.exports = {"bn-BD":{"Add a Brick":"Add a Brick","Guest Explanation":"Guests can build, but not publish apps.","Open":"Open","Create":"Create","My Profile":"আমার প্রফাইল","the web":"the web","you":"তুমি","Business":"Business","You can create your own app. Just open a template and edit!":"আপনি আপনার নিজের অ্যাপ বানাতে পারেন। শুধুমাত্র একটি টেমপ্লেট খুলুন এবং সম্পাদনা করুন।!","Details":"বিস্তারিত","Get Started":"আসুন শুরু করি","Delete App":"Delete App","Share Community News":"Share Community News","Apps":"অ্যাপ","scientist":"scientist","Join Webmaker":"Join Webmaker","Preview":"প্রাকদর্শন","Family":"Family","Image":"ছবি","Sign In":"সাইন ইন","Safety":"Safety","Discover":"আবিষ্কার","Change":"Change","Make &amp; share the web":"Make &amp; share the web","errorAppNotFound":"Sorry, this app was not found. Go back to your <a href='/profile'>profile</a>?","Name":"নাম","Near Me":"Near Me","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Untitled App","activists":"স্বেচ্ছাসেবক","Done":"করা হয়ে গেছে","Delete":"মুছুন","Apps I've Created":"আমার বানানো অ্যাপসমূহ","Phone":"Phone","Email":"ইমেইল","Activist":"Activist","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"মোজিলা ওয়েবমেকার এবং অন্যান্য প্রকল্প সম্পর্কে হালনাগাদ তথ্যের ইমেইল আমাকে পাঠাবেন","share_message":"Check out the app {{app.name}} I made with Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"My {{template}} App","Featured Apps":"Featured Apps","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> from <br/></span><strong>{{location}}</strong>","Text Colour":"Text Colour","students":"শিক্ষার্থী","Sorry, that name has already been snagged! Please try another.":"Sorry, that name has already been snagged! Please try another.","Create and share app templates with people all around the world":"অ্যাপের টেমপ্লেট বানান এবং পৃথিবীর সকলের সাথে তা শেয়ার করুন","Teacher":"Teacher","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"This device isn't connected to the internet, so you won't be able to publish any apps.","Message":"ম্যাসেজ","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"by {{name}}","Make an App":"Make an App","Remove":"সরান","Sign Out":"সাইন অউট","Delete my Apps":"Delete my Apps","vendors":"বিক্রেতারা","Medic":"Medic","journalists":"সাংবাদিক","Journalist":"সাংবাদিক","parents":"অভিভাবক","Text Value":"Text Value","I agree to your terms and conditions":"I agree to your terms and conditions","My Apps":"My Apps","Cancel":"বাতিল করুন","Try in Offline Mode":"Try in Offline Mode","Guest":"Guest","Try as Guest":"Try as Guest","No Apps Message":"You don't have any apps yet.","Data":"Data","errorNoText":"You must include a text value","Select Color":"রং পছন্দ করুন","Location":"অবস্থান","Edit":"সম্পাদনা","Phone #":"Phone #","Save":"সংরক্ষণ","Create a Safety App":"Create a Safety App","Publish":"প্রকাশ করুন","Choose a username":"ব্যবহারকারী হিসেবে একটি নাম বাছাই করুন","errorDefault":"Oops! There was an error. Go back to your <a href='/profile'>profile</a>?","Label":"লেবেল","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Edit my Profile","Apps made by _":"অ্যাপ বানিয়েছে: <span v-cycle=\\\"personas\\\"></span>","Place call":"কল করুন","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"অ্যাপ্লিকেশন","Make Your Own App":"Make Your Own App","Next":"পরবর্তি","Text Box":"Text Box","App Name & Icon":"App Name & Icon","Share":"শেয়ার করুন","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"টেক্সট","teachers":"শিক্ষক","From Scratch":"From Scratch","error404":"Sorry, we couldn't find this page. Would you like to <a href='/sign-in'>go back to the start</a>?","How To":"How To","doctors":"চিকিৎসক","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"},"cs":{"Add a Brick":"Add a Brick","Guest Explanation":"Guests can build, but not publish apps.","Open":"Open","Create":"Create","My Profile":"Můj profil","the web":"the web","you":"vámi","Business":"Business","You can create your own app. Just open a template and edit!":"Můžete tvořit vaše vlastní aplikace. Stačí otevřít šablonu a upravit!","Details":"Detaily","Get Started":"Začínáme","Delete App":"Delete App","Share Community News":"Share Community News","Apps":"Aplikace","scientist":"scientist","Join Webmaker":"Join Webmaker","Preview":"Náhled","Family":"Family","Image":"Obrázek","Sign In":"Přihlásit se","Safety":"Safety","Discover":"Objevit","Change":"Change","Make &amp; share the web":"Make &amp; share the web","errorAppNotFound":"Sorry, this app was not found. Go back to your <a href='/profile'>profile</a>?","Name":"Název","Near Me":"Near Me","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Untitled App","activists":"aktivisty","Done":"Hotovo","Delete":"Smazat","Apps I've Created":"Aplikace, které jsem vytvořil","Phone":"Phone","Email":"E-mail","Activist":"Activist","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"Povolit zasílání e-mailových aktualizací o Mozilla Webmakeru a dalších projektech","share_message":"Check out the app {{app.name}} I made with Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"My {{template}} App","Featured Apps":"Featured Apps","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> from <br/></span><strong>{{location}}</strong>","Text Colour":"Text Colour","students":"studenty","Sorry, that name has already been snagged! Please try another.":"Sorry, that name has already been snagged! Please try another.","Create and share app templates with people all around the world":"Tvorba a sdílení šablon aplikace s lidmi na celém světě","Teacher":"Teacher","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"This device isn't connected to the internet, so you won't be able to publish any apps.","Message":"Message","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"by {{name}}","Make an App":"Make an App","Remove":"Odstranit","Sign Out":"Sign Out","Delete my Apps":"Delete my Apps","vendors":"prodejci","Medic":"Medic","journalists":"žurnalisty","Journalist":"Žurnalista","parents":"rodiči","Text Value":"Text Value","I agree to your terms and conditions":"I agree to your terms and conditions","My Apps":"My Apps","Cancel":"Zrušit","Try in Offline Mode":"Try in Offline Mode","Guest":"Guest","Try as Guest":"Try as Guest","No Apps Message":"You don't have any apps yet.","Data":"Data","errorNoText":"You must include a text value","Select Color":"Vybrat barvu","Location":"Místo","Edit":"Upravit","Phone #":"Phone #","Save":"Uložit","Create a Safety App":"Create a Safety App","Publish":"Publikování","Choose a username":"Zvolte uživatelské jméno","errorDefault":"Oops! There was an error. Go back to your <a href='/profile'>profile</a>?","Label":"Label","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Edit my Profile","Apps made by _":"Aplikace vytvořeny: <span v-cycle=\"personas\"></span>","Place call":"Place call","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"App","Make Your Own App":"Make Your Own App","Next":"Další","Text Box":"Text Box","App Name & Icon":"App Name & Icon","Share":"Sdílet","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"Text","teachers":"učiteli","From Scratch":"From Scratch","error404":"Sorry, we couldn't find this page. Would you like to <a href='/sign-in'>go back to the start</a>?","How To":"How To","doctors":"doktory","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"},"en-CA":{"Add a Brick":"Add a Brick","Guest Explanation":"Guests can build, but not publish apps.","Open":"Open","Create":"Create","My Profile":"My Profile","the web":"the web","you":"you","Business":"Business","You can create your own app. Just open a template and edit!":"You can create your own app. Just open a template and edit!","Details":"Details","Get Started":"Get Started","Delete App":"Delete App","Share Community News":"Share Community News","Apps":"Apps","scientist":"scientist","Join Webmaker":"Join Webmaker","Preview":"Preview","Family":"Family","Image":"Image","Sign In":"Sign In","Safety":"Safety","Discover":"Discover","Change":"Change","Make &amp; share the web":"Make &amp; share the web","errorAppNotFound":"Sorry, this app was not found. Go back to your <a href='/profile'>profile</a>?","Name":"Name","Near Me":"Near Me","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Untitled App","activists":"activists","Done":"Done","Delete":"Delete","Apps I've Created":"Apps I've Created","Phone":"Phone","Email":"Email","Activist":"Activist","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"Send me email updates about Mozilla Webmaker and other projects","share_message":"Check out the app {{app.name}} I made with Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"My {{template}} App","Featured Apps":"Featured Apps","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> from <br/></span><strong>{{location}}</strong>","Text Colour":"Text Colour","students":"students","Sorry, that name has already been snagged! Please try another.":"Sorry, that name has already been snagged! Please try another.","Create and share app templates with people all around the world":"Create and share app templates with people all around the world","Teacher":"Teacher","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"This device isn't connected to the internet, so you won't be able to publish any apps.","Message":"Message","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"by {{name}}","Make an App":"Make an App","Remove":"Remove","Sign Out":"Sign Out","Delete my Apps":"Delete my Apps","vendors":"vendors","Medic":"Medic","journalists":"journalists","Journalist":"Journalist","parents":"parents","Text Value":"Text Value","I agree to your terms and conditions":"I agree to your terms and conditions","My Apps":"My Apps","Cancel":"Cancel","Try in Offline Mode":"Try in Offline Mode","Guest":"Guest","Try as Guest":"Try as Guest","No Apps Message":"You don't have any apps yet.","Data":"Data","errorNoText":"You must include a text value","Select Color":"Select Colour","Location":"Location","Edit":"Edit","Phone #":"Phone #","Save":"Save","Create a Safety App":"Create a Safety App","Publish":"Publish","Choose a username":"Choose a username","errorDefault":"Oops! There was an error. Go back to your <a href='/profile'>profile</a>?","Label":"Label","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Edit my Profile","Apps made by _":"Apps made by: <span v-cycle=\"personas\"></span>","Place call":"Place call","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"App","Make Your Own App":"Make Your Own App","Next":"Next","Text Box":"Text Box","App Name & Icon":"App Name & Icon","Share":"Share","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"Text","teachers":"teachers","From Scratch":"From Scratch","error404":"Sorry, we couldn't find this page. Would you like to <a href='/sign-in'>go back to the start</a>?","How To":"How To","doctors":"doctors","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"},"en-US":{"Add a Brick":"Add a Brick","scientist":"scientist","errorNoText":"You must include a text value","My Profile":"My Profile","Edit my Profile":"Edit my Profile","you":"you","You can create your own app. Just open a template and edit!":"You can create your own app. Just open a template and edit!","Details":"Details","Get Started":"Get Started","Apps":"Apps","My Apps":"My Apps","by _":"by {{name}}","Image":"Image","Name":"Name","App Name & Icon":"App Name & Icon","activists":"activists","Apps I've Created":"Apps I've Created","Make Your Own App":"Make Your Own App","Make an App":"Make an App","SMS":"SMS","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> from <br/></span><strong>{{location}}</strong>","students":"students","Create and share app templates with people all around the world":"Create and share app templates with people all around the world","Remove":"Remove","Delete":"Delete","vendors":"vendors","journalists":"journalists","Journalist":"Journalist","Business":"Business","From Scratch":"From Scratch","Teacher":"Teacher","Medic":"Medic","How To":"How To","Family":"Family","Blogger":"Blogger","Club":"Club","Safety":"Safety","Activist":"Activist","parents":"parents","Select Color":"Select Color","Location":"Location","Edit":"Edit","Apps made by _":"Apps made by: <span v-cycle=\"personas\"></span>","Next":"Next","Preview":"Preview","Text":"Text","teachers":"teachers","doctors":"doctors","Message":"Message","Place call":"Place call","Sign In":"Sign In","Try as Guest":"Try as Guest","Guest":"Guest","Guest Explanation":"Guests can build, but not publish apps.","Try in Offline Mode":"Try in Offline Mode","Offline Mode Explanation":"This device isn't connected to the internet, so you won't be able to publish any apps.","Sign Out":"Sign Out","Delete App":"Delete App","Delete my Apps":"Delete my Apps","Untitled App":"Untitled App","Text Value":"Text Value","Text Colour":"Text Colour","Phone":"Phone","Phone #":"Phone #","Label":"Label","Email":"Email","Choose a username":"Choose a username","Send me email updates about Mozilla Webmaker and other projects":"Send me email updates about Mozilla Webmaker and other projects","I agree to your terms and conditions":"I agree to your terms and conditions","Change":"Change","share_message":"Check out the app {{app.name}} I made with Mozilla Webmaker","App":"App","Cancel":"Cancel","Done":"Done","No Apps Message":"You don't have any apps yet.","Featured Apps":"Featured Apps","Near Me":"Near Me","Sorry, that name has already been snagged! Please try another.":"Sorry, that name has already been snagged! Please try another.","error404":"Sorry, we couldn't find this page. Would you like to <a href='/sign-in'>go back to the start</a>?","errorAppNotFound":"Sorry, this app was not found. Go back to your <a href='/profile'>profile</a>?","errorDefault":"Oops! There was an error. Go back to your <a href='/profile'>profile</a>?","Discover":"Discover","Make &amp; share the web":"Make &amp; share the web","the web":"the web","Share":"Share","Open":"Open","Create":"Create","Data":"Data","Publish":"Publish","Join Webmaker":"Join Webmaker","My {{template}} App":"My {{template}} App","Save":"Save","Start from Scratch":"Start from Scratch","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Create a Blog":"Create a Blog","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Build a Lesson Plan":"Build a Lesson Plan","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Share Community News":"Share Community News","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","Create a How To Guide":"Create a How To Guide","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Create a Safety App":"Create a Safety App","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","Text Box":"Text Box"},"es-CL":{"Add a Brick":"Añadir un bloque","Guest Explanation":"Los invitados pueden crear apps, pero no publicarlas.","Open":"Abrir","Create":"Crear","My Profile":"Mi perfil","the web":"la web","you":"ti","Business":"Negocios","You can create your own app. Just open a template and edit!":"Puedes crear tu propia app. ¡Solo abre una plantilla y edítala!","Details":"Detalles","Get Started":"Comenzar","Delete App":"Eliminar app","Share Community News":"Comparte noticias de la comunidad","Apps":"Apps","scientist":"científico","Join Webmaker":"Unirse a Webmaker","Preview":"Previsualización","Family":"Familia","Image":"Imagen","Sign In":"Conectarse","Safety":"Seguridad","Discover":"Descubrir","Change":"Cambiar","Make &amp; share the web":"Crear  y compartir la web","errorAppNotFound":"Lo sentimos, esta app no fue encontrada. ¿Regresar a tu <a href='/profile'>perfil</a>?","Name":"Nombre","Near Me":"Cerca de mi","Choosing this option will allow you to create your own app without a preset template.":"Elegir esta opción te permitirá crear tu propia app sin hacer uso de una plantilla","Untitled App":"App sin título","activists":"activistas","Done":"Hecho","Delete":"Eliminar","Apps I've Created":"Apps que he creado","Phone":"Teléfono","Email":"Correo","Activist":"Activista","SMS":"SMS","Create a Blog":"Crear un Blog","Send me email updates about Mozilla Webmaker and other projects":"Enviarme correos con las novedades de Mozilla Webmaker y otros proyectos","share_message":"Revisa la app {{app.name}} que creé con Mozilla Webmaker","Blogger":"Bloguero","My {{template}} App":"Mi app de {{template}}","Featured Apps":"Apps destacadas","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> de <br/></span><strong>{{location}}</strong>","Text Colour":"Color del texto","students":"estudiantes","Sorry, that name has already been snagged! Please try another.":"Lo sentimos, ¡ese nombre ya ha sido agarrado! Por favor, prueba con otro.","Create and share app templates with people all around the world":"Crea y comparte plantillas de apps con personas de todo el mundo","Teacher":"Profesor","Start from Scratch":"Empezar de cero","Offline Mode Explanation":"Este dispositivo no está conectado a Internet, por lo que no podrás publicar aplicaciones.","Message":"Mensaje","Share photos and write articles and about your local community":"Comparte fotos y escribe artículos sobre tu comunidad local","by _":"por {{name}}","Make an App":"Crear una app","Remove":"Remover","Sign Out":"Salir","Delete my Apps":"Borrar mis apps","vendors":"proveedores","Medic":"Médico","journalists":"periodistas","Journalist":"Periodista","parents":"padres","Text Value":"Valor del texto","I agree to your terms and conditions":"Acepto sus términos y condiciones","My Apps":"Mis apps","Cancel":"Cancelar","Try in Offline Mode":"Probar en modo sin conexión","Guest":"Invitado","Try as Guest":"Probar como invitado","No Apps Message":"En este momento no tienes ninguna app.","Data":"Datos","errorNoText":"Debes incluir un valor de texto","Select Color":"Seleccionar color","Location":"Ubicación","Edit":"Editar","Phone #":"Número de teléfono","Save":"Guardar","Create a Safety App":"Crear una app de seguridad","Publish":"Publicar","Choose a username":"Escoge un nombre de usuario","errorDefault":"¡Chuta! Ocurrio un error. ¿Regresar a tu <a href='/profile'>perfil</a>?","Label":"Etiqueta","Create a How To Guide":"Crea una guía \"Hágalo usted mismo\"","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"¿Tienes algo para compartir con el mundo? Inicia un blog, personalizalo para hacerlo tuyo y ¡empieza a escribir!","Edit my Profile":"Editar mi perfil","Apps made by _":"Apps creadas por: <span v-cycle=\"personas\"></span>","Place call":"Realizar llamada","If you've got unique skills you'd like to share with others, try making a How To guide.":"Si tienes habilidades únicas que quieres compartir con otros, intenta hacer una guía Hágalo usted mismo.","Add a map, a emergency call button, and other tips to keep safe in your community":"Añade un mapa, un botón de llamada de emergencia y otros consejos para mantenerse seguro en tu comunidad","App":"App","Make Your Own App":"Crea tu propia App","Next":"Siguiente","Text Box":"Caja de texto","App Name & Icon":"Nombre de la app e ícono","Share":"Compartir","Promote your Business":"Promueve tu negocio","Show off your products and give customers an easy way to reach you.":"Muestra tus productos y dale a los consumidores una forma fácil de encontrarte.","Build a Lesson Plan":"Crea una planificación de clases","Text":"Texto","teachers":"profesores","From Scratch":"De cero","error404":"Lo sentimos, no pudimos encontrar esta página. ¿Te gustaría <a href='/sign-in'>regresar al inicio</a>?","How To":"Tutorial","doctors":"doctores","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"Si quieres compartir tus habilidades con otros, crea un plan de clases móvil y enseña lo que sabes"},"es-MX":{"Add a Brick":"Agregar un bloque","Guest Explanation":"Los invitados pueden construir aplicaciones pero no las pueden publicar.","Open":"Abrir","Create":"Crear","My Profile":"Mi perfil","the web":"la web","you":"tú","Business":"Negocios","You can create your own app. Just open a template and edit!":"Puedes crear tu propia aplicación; solo tiene que abrir una plantilla y editar.","Details":"Detalles","Get Started":"Comenzar","Delete App":"Eliminar App","Share Community News":"Compartir las noticias de la comunidad","Apps":"Aplicaciones","scientist":"científico","Join Webmaker":"Únete a Webmaker","Preview":"Vista preliminar","Family":"Familia","Image":"Imagen","Sign In":"Conectar","Safety":"Seguridad","Discover":"Descubre","Change":"Cambiar","Make &amp; share the web":"Crear y compartir la web","errorAppNotFound":"Lo sentimos, pero no se pudo encontrar esa aplicación. ¿Quieres regresar a tu <a href='/profile'>perfil</a>?","Name":"Nombre","Near Me":"Cerca de mí","Choosing this option will allow you to create your own app without a preset template.":"Esta opción te permitirá crear tu propia aplicación sin tener que utilizar una plantilla predeterminada.","Untitled App":"App Sin Título","activists":"activistas","Done":"Terminado","Delete":"Eliminar","Apps I've Created":"Aplicaciones que he creado","Phone":"Teléfono","Email":"Correo electrónico","Activist":"Activista","SMS":"SMS","Create a Blog":"Crear un blog","Send me email updates about Mozilla Webmaker and other projects":"Envíame un correo electrónico con las actualizaciones más recientes de Mozilla Webmaker y de otros proyectos.","share_message":"Revisa la aplicación {{app.name}} que creé con Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"Mi aplicación {{template}}","Featured Apps":"Aplicaciones destacadas","Club":"Club","name from location":"<strong>{{name}}</strong><span v-if=\"location\"><br/> de <br/></span><strong>{{location}}</strong>","Text Colour":"Color del Texto","students":"estudiantes","Sorry, that name has already been snagged! Please try another.":"Lo sentimos pero este nombre ya ha sido tomado. Por favor, escoge otro.","Create and share app templates with people all around the world":"Crea y comparte plantillas de aplicaciones con gente de todo el mundo","Teacher":"Maestro","Start from Scratch":"Empezar de cero","Offline Mode Explanation":"Este dispositivo no está conectado al Internet así que no podrás publicar ninguna aplicación.","Message":"Mensaje","Share photos and write articles and about your local community":"Comparte fotos y escribe artículos sobre tu comunidad","by _":"por {{nombre}}","Make an App":"Crear una aplicación","Remove":"Eliminar","Sign Out":"Cerrar sesión","Delete my Apps":"Borrar mis aplicaciones","vendors":"proveedores","Medic":"Médico","journalists":"periodistas","Journalist":"Periodista","parents":"padres","Text Value":"Valor del Texto","I agree to your terms and conditions":"Acepto los términos y condiciones","My Apps":"Mis aplicaciones","Cancel":"Cancelar","Try in Offline Mode":"Probar en modo fuera de línea","Guest":"Invitado","Try as Guest":"Pruébalo como invitado","No Apps Message":"No tienes ninguna aplicación todavía.","Data":"Datos","errorNoText":"Debes incluir un valor de texto","Select Color":"Seleccionar color","Location":"Ubicación","Edit":"Editar","Phone #":"# de Teléfono","Save":"Guardar","Create a Safety App":"Crear una aplicación para la prevención","Publish":"Publicar","Choose a username":"Elige tu nombre de usuario","errorDefault":"¡Ups! Hubo un error. ¿Quieres regresar a tu <a href='/profile'>profile</a>?","Label":"Etiqueta","Create a How To Guide":"Crear una guía práctica","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"¿Tiene algo que quieres compartir con el mundo? Inicia un blog, personalízalo, y comienza a escribir.","Edit my Profile":"Editar mi perfil","Apps made by _":"Aplicaciones realizadas por: <span v-cycle=\"personas\"></span>","Place call":"Hacer una llamada","If you've got unique skills you'd like to share with others, try making a How To guide.":"Si tienes habilidades únicas y quieres compartirlas con los demás, intenta crear una guía práctica.","Add a map, a emergency call button, and other tips to keep safe in your community":"Agrega un mapa, un botón de emergencia y otros consejos que contribuyan a mantener segura tu comunidad.","App":"Aplicación","Make Your Own App":"Crear tu propia aplicación","Next":"Siguiente","Text Box":"Caja de texto","App Name & Icon":"El nombre de la aplicación y el ícono","Share":"Compartir","Promote your Business":"Promociona tu negocio","Show off your products and give customers an easy way to reach you.":"Presume tus productos y permíteles a los clientes ponerse en contacto contigo de manera fácil.","Build a Lesson Plan":"Construir un plan de lección","Text":"Texto","teachers":"profesores","From Scratch":"Empezar de cero","error404":"Lo sentimos, pero no pudimos encontrar esa página. ¿Quieres <a href='/sign-in'>volver al inicio</a>?","How To":"Cómo","doctors":"doctores","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"Si quieres compartir tus habilidades con los demás, construye un plan de lección móvil y enseña lo que sabes."},"fr":{"Add a Brick":"Ajouter une brique","Guest Explanation":"Les Invités peuvent développer des applications, mais ne peuvent les publier.","Open":"Ouvrir","Create":"Créer","My Profile":"Mon profil","the web":"le web","you":"vous","Business":"Affaires","You can create your own app. Just open a template and edit!":"Vous pouvez créer votre propre app. Il suffit d'ouvrir le modèle et de le modifier !","Details":"Détails","Get Started":"Commencer","Delete App":"Effacer l'application","Share Community News":"Partagez vos actualités avec la Communauté","Apps":"Applications","scientist":"scientifique","Join Webmaker":"Rejoignez Webmaker","Preview":"Aperçu","Family":"Famille","Image":"Image","Sign In":"Connexion","Safety":"Sécurité","Discover":"Explorer","Change":"Modifier","Make &amp; share the web":"Créez & partagez le Web","errorAppNotFound":"Désolé, l'application est introuvable. Souhaitez-vous revenir à votre <a href='/profile'>profil</a>?","Name":"Nom","Near Me":"Près de moi","Choosing this option will allow you to create your own app without a preset template.":"Choisir cette option vous permettra de créer votre propre application sans modèle prédéfini.","Untitled App":"Application sans titre","activists":"activistes","Done":"Terminé","Delete":"Supprimer","Apps I've Created":"Applis que j'ai créées","Phone":"Téléphone","Email":"Adresse électronique","Activist":"Activiste","SMS":"SMS","Create a Blog":"Créer un Blog","Send me email updates about Mozilla Webmaker and other projects":"M'avertir des mises à jour pour Mozilla Webmaker et autres projets","share_message":"Venez voir l'application \"{{app.name}}\" que j'ai créé avec Mozilla Webmaker","Blogger":"Bloggueur","My {{template}} App":"Mon {{template}} Application","Featured Apps":"Applications sélectionnées","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> de <br/></span><strong>{{location}}</strong>","Text Colour":"Couleur du texte","students":"étudiants","Sorry, that name has already been snagged! Please try another.":"Désolé, ce nom est déjà utilisé! Veuillez utiliser un nom différent.","Create and share app templates with people all around the world":"Créer et partager app modèles avec des personnes autour du monde","Teacher":"Enseignant","Start from Scratch":"Démarrer de zéro","Offline Mode Explanation":"Cet appareil n'étant pas connecté à internet, vous ne pourrez pas publier d'application.","Message":"Message","Share photos and write articles and about your local community":"Partagez des photos et écrivez des articles en rapport avec votre communauté locale","by _":"par {{name}}","Make an App":"Créer une Appli","Remove":"Supprimer","Sign Out":"Déconnexion","Delete my Apps":"Supprimer mes Applis","vendors":"vendeurs","Medic":"Médical","journalists":"journalistes","Journalist":"Journaliste","parents":"parents","Text Value":"Texte","I agree to your terms and conditions":"J'accepte les termes et les conditions d'utilisation","My Apps":"Mes Applis","Cancel":"Annuler","Try in Offline Mode":"Essayer en mode Hors Ligne","Guest":"Invité","Try as Guest":"Essayer en tant qu'Invité","No Apps Message":"Vous n'avez aucune application.","Data":"Données","errorNoText":"Vous devez inclure du texte","Select Color":"Sélectionner une couleur","Location":"Habite à","Edit":"Modifier","Phone #":"No de téléphone","Save":"Enregistrer","Create a Safety App":"Créer une application sûre.","Publish":"Publier","Choose a username":"Choisissez un nom d'utilisateur","errorDefault":"Oups! Une erreur s'est produite. Souhaitez-vous revenir à votre <a href='/profile'>profil</a>?","Label":"Intitulé","Create a How To Guide":"Créer un guide pratique","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Vous avez quelque chose à partager avec le monde ? Lancez un blog, personnalisez le afin de le faire à votre image et commencez à écrire !","Edit my Profile":"Modifier mon profil","Apps made by _":"Applis créées par : <span v-cycle=\"personas\"></span>","Place call":"Passer un appel","If you've got unique skills you'd like to share with others, try making a How To guide.":"Si vous avez des compétences particulières que vous désirez partager avec d'autres, essayer de réaliser un guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Ajouter une carte, un bouton d'appel d'urgence, et d'autres conseils pour préserver la sécurité de la communauté.","App":"Application","Make Your Own App":"Créez votre propre Appli","Next":"Suivant","Text Box":"Boîte de dialogue.","App Name & Icon":"Nom et icône de l'App","Share":"Partager","Promote your Business":"Promouvoir votre entreprise","Show off your products and give customers an easy way to reach you.":"Affichez vos produits et offrez aux clients un moyen facile de vous contacter.","Build a Lesson Plan":"Créer un plan de leçon","Text":"Texte","teachers":"enseignants","From Scratch":"Démarrer de zéro","error404":"Désolé, la page demandée n'a pas pu être trouvée. Souhaitez vous <a href='/sign-in'>revenir à l'accueil</a>?","How To":"Tutoriel","doctors":"docteurs","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"Si vous souhaitez partager vos compétences avec les autres, créez un planning de leçon mobile et enseigner ce que vous savez"},"id":{"Add a Brick":"Tambahkan Bata","Guest Explanation":"Tamu dapat membuat, tapi tidak mempublikasikan aplikasi.","Open":"Buka","Create":"Ciptakan","My Profile":"Profil Saya","the web":"web","you":"Anda","Business":"Business","You can create your own app. Just open a template and edit!":"Anda dapat membuat aplikasi Anda sendiri. Cukup dengan membuka sebuah contoh dan edit!","Details":"Detail","Get Started":"Mulai","Delete App":"Hapus Aplikasi","Share Community News":"Share Community News","Apps":"Aplikasi","scientist":"ilmuwan","Join Webmaker":"Bergabung dengan Webmaker","Preview":"Pratinjau","Family":"Keluarga","Image":"Gambar","Sign In":"Masuk","Safety":"Keselamatan","Discover":"Jajaki","Change":"Ubah","Make &amp; share the web":"Buat &amp; berbagi dengan web","errorAppNotFound":"Maaf, aplikasi ini tidak ditemukan. Kembali ke <a href='/profile'>profil</a> Anda?","Name":"Nama","Near Me":"Dekat Saya","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Aplikasi Tanpa Nama","activists":"aktivis","Done":"Selesai","Delete":"Hapus","Apps I've Created":"Aplikasi Buatan Saya","Phone":"Telepon","Email":"Surel","Activist":"Aktivis","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"Kirimi saya kabar terbaru tentang Mozilla Webmaker dan proyek lainnya","share_message":"Lihatlah aplikasi {{app.name}} yang saya buat dengan Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"Aplikasi {{template}} Saya","Featured Apps":"Aplikasi Unggulan","Club":"Klub","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> dari <br/></span><strong>{{location}}</strong>","Text Colour":"Warna Text","students":"pelajar","Sorry, that name has already been snagged! Please try another.":"Maaf, nama itu telah disambar! Silakan coba yang lain.","Create and share app templates with people all around the world":"Buat dan bagikan contoh aplikasi kepada orang-orang diseluruh dunia","Teacher":"Guru","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"Peranti ini tidak tersambung ke internet, Anda tidak dapat mempublikasikan aplikasi apapun. ","Message":"Pesan","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"oleh {{name}}","Make an App":"Buat Aplikasi","Remove":"Buang","Sign Out":"Keluar","Delete my Apps":"Hapus Aplikasi saya","vendors":"penjual","Medic":"Kesehatan","journalists":"jurnalis","Journalist":"Jurnalis","parents":"orang tua","Text Value":"Nilai Text","I agree to your terms and conditions":"Saya setuju dengan syarat dan ketentuan anda","My Apps":"Aplikasi Saya","Cancel":"Batal","Try in Offline Mode":"Cobalah dalam Mode Luring","Guest":"Tamu","Try as Guest":"Coba sebagai Tamu","No Apps Message":"Anda belum punya aplikasi.","Data":"Data","errorNoText":"Anda harus sertakan nilai teks","Select Color":"Pilih Warna","Location":"Lokasi","Edit":"Edit","Phone #":"Telepon #","Save":"Simpan","Create a Safety App":"Create a Safety App","Publish":"Terbitkan","Choose a username":"Pilih nama pengguna","errorDefault":"Ups! Terjadi galat. Kembali ke <a href='/profile'>profil</a> Anda?","Label":"Label","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Edit Profil saya","Apps made by _":"Aplikasi dibuat oleh: <span v-cycle=\"personas\"></span>","Place call":"Letakkan panggilan","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"Aplikasi","Make Your Own App":"Make Your Own App","Next":"Selanjutnya","Text Box":"Text Box","App Name & Icon":"Nama dan Ikon Aplikasi","Share":"Bagikan","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"Teks","teachers":"guru","From Scratch":"Dari Awal","error404":"Maaf, kami tidak menemukan laman ini. Apakah anda ingin <a href='/sign-in'>kembali ke awal</a>?","How To":"Instruksi","doctors":"dokter","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"},"nl":{"Add a Brick":"Een bouwsteen toevoegen","Guest Explanation":"Gasten kunnen Apps maken, maar niet publiceren.","Open":"Open","Create":"Maak","My Profile":"Mijn profiel","the web":"het web","you":"u","Business":"Zakelijk","You can create your own app. Just open a template and edit!":"U kunt uw eigen app maken. Open gewoon een sjabloon en bewerk deze!","Details":"Details","Get Started":"Begin nu","Delete App":"Verwijder de App","Share Community News":"Deel nieuws van de gemeenschap","Apps":"Apps","scientist":"wetenschapper","Join Webmaker":"Meld u aan bij Webmaker","Preview":"Voorbeeld","Family":"Familie","Image":"Afbeelding","Sign In":"Log In","Safety":"Veiligheid","Discover":"Ontdekken","Change":"Wijzig","Make &amp; share the web":"Maak en deel het web","errorAppNotFound":"Sorry, deze App is niet gevonden. Ga terug naar uw <a href='/profile'>profiel</a>?","Name":"Naam","Near Me":"Dicht bij mij","Choosing this option will allow you to create your own app without a preset template.":"Met deze optie kunt u uw eigen app maken zonder een sjabloon.","Untitled App":"Naamloze App","activists":"activisten","Done":"Klaar","Delete":"Verwijderen","Apps I've Created":"Apps die ik heb gemaakt","Phone":"Telefoon","Email":"E-mailadres","Activist":"Activist","SMS":"sms","Create a Blog":"Maak een blog","Send me email updates about Mozilla Webmaker and other projects":"Stuur mij e-mailupdates over Mozilla Webmaker en andere projecten","share_message":"Kijk eens naar deze app {{app.name}} die ik gemaakt heb met Mozilla Webmaker","Blogger":"Blogger","My {{template}} App":"Mijn {{template}} App","Featured Apps":"Uitgelichte Apps","Club":"Club","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> uit <br/></span><strong>{{location}}</strong>","Text Colour":"Tekstkleur","students":"studenten","Sorry, that name has already been snagged! Please try another.":"Sorry, die naam is al door iemand anders gebruikt! Probeer een andere.","Create and share app templates with people all around the world":"Maak en deel app-sjablonen met mensen van over de hele wereld","Teacher":"Leraar","Start from Scratch":"Begin opnieuw","Offline Mode Explanation":"Dit apparaat is niet verbonden met het internet, dus u zult geen Apps kunnen publiceren.","Message":"Bericht","Share photos and write articles and about your local community":"Deel foto's en schrijf artikelen over uw lokale gemeenschap","by _":"door {{name}}","Make an App":"Maak een App","Remove":"Verwijder","Sign Out":"Afmelden","Delete my Apps":"Verwijder mijn Apps","vendors":"uitgevers","Medic":"Dokter","journalists":"journalisten","Journalist":"Journalist","parents":"ouders","Text Value":"Tekstwaarde","I agree to your terms and conditions":"Ik ga akkoord met de voorwaarden","My Apps":"Mijn Apps","Cancel":"Annuleren","Try in Offline Mode":"Probeer in offlinemodus","Guest":"Gast","Try as Guest":"Probeer als een gast","No Apps Message":"U heeft nog geen apps.","Data":"Gegevens","errorNoText":"U moet een tekstwaarde invullen","Select Color":"Selecteer een kleur","Location":"Locatie","Edit":"Bewerken","Phone #":"Telefoon #","Save":"Opslaan","Create a Safety App":"Maak een veiligheidsapp","Publish":"Publiceren","Choose a username":"Kies een gebruikersnaam","errorDefault":"Oeps! Er was een fout. Ga terug naar uw <a href='/profile'>profiel</a>?","Label":"Label","Create a How To Guide":"Maak een handleiding","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Heeft u de wereld iets te vertellen? Start een blog, pas het aan om het van uzelf te maken en start met schrijven.","Edit my Profile":"Mijn profiel bewerken","Apps made by _":"Apps gemaakt door: <span v-cycle=\"personas\"></span>","Place call":"Nummer bellen","If you've got unique skills you'd like to share with others, try making a How To guide.":"Als u unieke vaardigheden bezit die u met anderen wilt delen, maak dan eens een handleiding.","Add a map, a emergency call button, and other tips to keep safe in your community":"Voeg een kaart toe, of een knop voor hulpdiensten en andere tips om veilig te blijven in uw gemeenschap","App":"App","Make Your Own App":"Maak uw eigen App","Next":"Volgende","Text Box":"Tekstvak","App Name & Icon":"App-naam & -icoon","Share":"Delen","Promote your Business":"Promoot uw zaken","Show off your products and give customers an easy way to reach you.":"Toon uw producten en geef klanten een gemakkelijke manier om u te bereiken,","Build a Lesson Plan":"Maak een lesplan","Text":"Tekst","teachers":"onderwijzers","From Scratch":"Helemaal opnieuw","error404":"Sorry, wij konden deze pagina niet vinden. Zou u <a href='/sign-in'>terug naar het begin</a> willen gaan?","How To":"Hoe","doctors":"dokters","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"Als u uw vaardigheden wilt delen met anderen, maak dan een mobiel lesplan en onderwijs wat u weet"},"sv":{"Add a Brick":"Add a Brick","Guest Explanation":"Gäster kan bygga, men inte publicera appar.","Open":"Öppna","Create":"Skapa","My Profile":"Min profil","the web":"Webben","you":"dig","Business":"Business","You can create your own app. Just open a template and edit!":"Du kan skapa din egna app. Öppna bara en mall och editera!","Details":"Detaljer","Get Started":"Kom igång","Delete App":"Radera App","Share Community News":"Share Community News","Apps":"Appar","scientist":"forskare","Join Webmaker":"Gå med i Webmaker","Preview":"Förhandsgranska","Family":"Familj","Image":"Bild","Sign In":"Logga In","Safety":"Säkerhet","Discover":"Upptäck","Change":"Ändra","Make &amp; share the web":"Make &amp; share the web","errorAppNotFound":"Ursäkta, den här appen gick inte att hitta. Gå tillbaka till din <a href='/profile'>profil</a>?","Name":"Namn","Near Me":"Nära Mig","Choosing this option will allow you to create your own app without a preset template.":"Choosing this option will allow you to create your own app without a preset template.","Untitled App":"Ej namngiven App","activists":"aktivister ","Done":"Färdig","Delete":"Ta bort","Apps I've Created":"Appar jag har skapat","Phone":"Telefon","Email":"Epost","Activist":"Aktivist","SMS":"SMS","Create a Blog":"Create a Blog","Send me email updates about Mozilla Webmaker and other projects":"Skicka mig email-uppdateringar om Mozilla Webmaker och andra projekt","share_message":"Kolla in appen {{app.name}} som jag gjorde med Mozilla Webmaker","Blogger":"Bloggare","My {{template}} App":"Min {{mall}} App","Featured Apps":"Presenterade Appar","Club":"Klubb","name from location":" <strong>{{name}}</strong><span v-if=\"location\"><br/> från <br/></span><strong>{{location}}</strong>","Text Colour":"Textfärg","students":"studenter","Sorry, that name has already been snagged! Please try another.":"Ursäkta, det namnet är redan taget! Försök med ett annat.","Create and share app templates with people all around the world":"Skapa och dela app mallar med folk runt om i världen","Teacher":"Lärare","Start from Scratch":"Start from Scratch","Offline Mode Explanation":"Den här enheten är inte uppkopplad till internet, så du kan inte publicera några appar.","Message":"Meddelande ","Share photos and write articles and about your local community":"Share photos and write articles and about your local community","by _":"av {{name}}","Make an App":"Gör en App","Remove":"Radera","Sign Out":"Logga Ut","Delete my Apps":"Radera mina Appar","vendors":"utvecklare","Medic":"Läkare","journalists":"journalister","Journalist":"Journalist","parents":"föräldrar","Text Value":"Textvärde","I agree to your terms and conditions":"Jag går med på dina villkor","My Apps":"Mina Appar","Cancel":"Avbryt","Try in Offline Mode":"Försök i Offline Läge","Guest":"Gäst","Try as Guest":"Försök som Gäst","No Apps Message":"Du har inga appar ännu.","Data":"Data","errorNoText":"You must include a text value","Select Color":"Välj Färg","Location":"Område","Edit":"Redigera","Phone #":"Telefon #","Save":"Spara","Create a Safety App":"Create a Safety App","Publish":"Publicera ","Choose a username":"Välj ett användarnamn","errorDefault":"Oops! Det blev ett fel. Gå tillbaka till din <a href='/profile'>profil</a>?","Label":"Etikett","Create a How To Guide":"Create a How To Guide","Have something to share with the world? Start a blog, customize to make it yours and start writing!":"Have something to share with the world? Start a blog, customize to make it yours and start writing!","Edit my Profile":"Redigera min Profil","Apps made by _":"Appar gjorda av: <span v-cycle=\"personas\"></span>","Place call":"Samtal","If you've got unique skills you'd like to share with others, try making a How To guide.":"If you've got unique skills you'd like to share with others, try making a How To guide.","Add a map, a emergency call button, and other tips to keep safe in your community":"Add a map, a emergency call button, and other tips to keep safe in your community","App":"App","Make Your Own App":"Make Your Own App","Next":"Nästa","Text Box":"Text Box","App Name & Icon":"App Name & Icon","Share":"Dela","Promote your Business":"Promote your Business","Show off your products and give customers an easy way to reach you.":"Show off your products and give customers an easy way to reach you.","Build a Lesson Plan":"Build a Lesson Plan","Text":"Text","teachers":"lärare","From Scratch":"Från Början","error404":"Ursäkta, vi kunde inte hitta sidan. Vill ni <a href='/sign-in'>gå tillbaka till start</a>?","How To":"Hur Man Gör","doctors":"doktorer","If you want to share your skills with others, build a mobile lesson plan and teach what you know":"If you want to share your skills with others, build a mobile lesson plan and teach what you know"}};
+},{}],72:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -4085,7 +4199,7 @@ function decodeUtf8Char (str) {
   }
 }
 
-},{"base64-js":70,"ieee754":71,"is-array":72}],70:[function(require,module,exports){
+},{"base64-js":73,"ieee754":74,"is-array":75}],73:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -4207,7 +4321,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],71:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -4293,7 +4407,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],72:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 
 /**
  * isArray
@@ -4328,7 +4442,7 @@ module.exports = isArray || function (val) {
   return !! val && '[object Array]' == str.call(val);
 };
 
-},{}],73:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4631,7 +4745,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],74:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -4656,7 +4770,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],75:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -4744,7 +4858,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],76:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/punycode v1.2.4 by @mathias */
 ;(function(root) {
@@ -5255,7 +5369,7 @@ process.chdir = function (dir) {
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],77:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5341,7 +5455,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],78:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5428,13 +5542,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],79:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":77,"./encode":78}],80:[function(require,module,exports){
+},{"./decode":80,"./encode":81}],83:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6143,14 +6257,14 @@ function isNullOrUndefined(arg) {
   return  arg == null;
 }
 
-},{"punycode":76,"querystring":79}],81:[function(require,module,exports){
+},{"punycode":79,"querystring":82}],84:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],82:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6740,7 +6854,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":81,"_process":75,"inherits":74}],83:[function(require,module,exports){
+},{"./support/isBuffer":84,"_process":78,"inherits":77}],86:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
@@ -6873,7 +6987,7 @@ clone.clonePrototype = function(parent) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":69}],84:[function(require,module,exports){
+},{"buffer":72}],87:[function(require,module,exports){
 /**
  * @preserve FastClick: polyfill to remove click delays on browsers with touch UIs.
  *
@@ -7696,7 +7810,7 @@ if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) 
 	window.FastClick = FastClick;
 }
 
-},{}],85:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 /*! @license Firebase v2.0.4 - License: https://www.firebase.com/terms/terms-of-service.html */ (function() {var h,aa=this;function n(a){return void 0!==a}function ba(){}function ca(a){a.Qb=function(){return a.ef?a.ef:a.ef=new a}}
 function da(a){var b=typeof a;if("object"==b)if(a){if(a instanceof Array)return"array";if(a instanceof Object)return b;var c=Object.prototype.toString.call(a);if("[object Window]"==c)return"object";if("[object Array]"==c||"number"==typeof a.length&&"undefined"!=typeof a.splice&&"undefined"!=typeof a.propertyIsEnumerable&&!a.propertyIsEnumerable("splice"))return"array";if("[object Function]"==c||"undefined"!=typeof a.call&&"undefined"!=typeof a.propertyIsEnumerable&&!a.propertyIsEnumerable("call"))return"function"}else return"null";
 else if("function"==b&&"undefined"==typeof a.call)return"object";return b}function ea(a){return"array"==da(a)}function fa(a){var b=da(a);return"array"==b||"object"==b&&"number"==typeof a.length}function p(a){return"string"==typeof a}function ga(a){return"number"==typeof a}function ha(a){return"function"==da(a)}function ia(a){var b=typeof a;return"object"==b&&null!=a||"function"==b}function ja(a,b,c){return a.call.apply(a.bind,arguments)}
@@ -7946,7 +8060,7 @@ O.prototype.Je=function(a,b){D("Firebase.resetPassword",2,2,arguments.length);cc
 function qb(a,b){x(!b||!0===a||!1===a,"Can't turn on custom loggers persistently.");!0===a?("undefined"!==typeof console&&("function"===typeof console.log?ob=q(console.log,console):"object"===typeof console.log&&(ob=function(a){console.log(a)})),b&&Ba.set("logging_enabled",!0)):a?ob=a:(ob=null,Ba.remove("logging_enabled"))}O.enableLogging=qb;O.ServerValue={TIMESTAMP:{".sv":"timestamp"}};O.SDK_VERSION="2.0.4";O.INTERNAL=Y;O.Context=Ah;O.TEST_ACCESS=$;})();
 module.exports = Firebase;
 
-},{}],86:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 'use strict';
 
 var asap = require('asap')
@@ -8053,7 +8167,7 @@ function doResolve(fn, onFulfilled, onRejected) {
   }
 }
 
-},{"asap":88}],87:[function(require,module,exports){
+},{"asap":91}],90:[function(require,module,exports){
 'use strict';
 
 //This file contains then/promise specific extensions to the core promise API
@@ -8235,7 +8349,7 @@ Promise.prototype['catch'] = function (onRejected) {
   return this.then(null, onRejected);
 }
 
-},{"./core.js":86,"asap":88}],88:[function(require,module,exports){
+},{"./core.js":89,"asap":91}],91:[function(require,module,exports){
 (function (process){
 
 // Use the fastest possible means to execute a task in a future turn
@@ -8352,7 +8466,7 @@ module.exports = asap;
 
 
 }).call(this,require('_process'))
-},{"_process":75}],89:[function(require,module,exports){
+},{"_process":78}],92:[function(require,module,exports){
 // Some code originally from async_storage.js in
 // [Gaia](https://github.com/mozilla-b2g/gaia).
 (function() {
@@ -8726,7 +8840,7 @@ module.exports = asap;
     }
 }).call(window);
 
-},{"promise":87}],90:[function(require,module,exports){
+},{"promise":90}],93:[function(require,module,exports){
 // If IndexedDB isn't available, we'll fall back to localStorage.
 // Note that this will have considerable performance and storage
 // side-effects (all data will be serialized on save and only data that
@@ -9178,7 +9292,7 @@ module.exports = asap;
     }
 }).call(window);
 
-},{"promise":87}],91:[function(require,module,exports){
+},{"promise":90}],94:[function(require,module,exports){
 /*
  * Includes code from:
  *
@@ -9720,7 +9834,7 @@ module.exports = asap;
     }
 }).call(window);
 
-},{"promise":87}],92:[function(require,module,exports){
+},{"promise":90}],95:[function(require,module,exports){
 (function() {
     'use strict';
 
@@ -10141,7 +10255,7 @@ module.exports = asap;
     }
 }).call(window);
 
-},{"./drivers/indexeddb":89,"./drivers/localstorage":90,"./drivers/websql":91,"promise":87}],93:[function(require,module,exports){
+},{"./drivers/indexeddb":92,"./drivers/localstorage":93,"./drivers/websql":94,"promise":90}],96:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -10214,7 +10328,7 @@ function throttle(func, wait, options) {
 
 module.exports = throttle;
 
-},{"lodash.debounce":94,"lodash.isfunction":97,"lodash.isobject":98}],94:[function(require,module,exports){
+},{"lodash.debounce":97,"lodash.isfunction":100,"lodash.isobject":101}],97:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -10372,7 +10486,7 @@ function debounce(func, wait, options) {
 
 module.exports = debounce;
 
-},{"lodash.isfunction":97,"lodash.isobject":98,"lodash.now":95}],95:[function(require,module,exports){
+},{"lodash.isfunction":100,"lodash.isobject":101,"lodash.now":98}],98:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -10402,7 +10516,7 @@ var now = isNative(now = Date.now) && now || function() {
 
 module.exports = now;
 
-},{"lodash._isnative":96}],96:[function(require,module,exports){
+},{"lodash._isnative":99}],99:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -10438,7 +10552,7 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{}],97:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -10467,7 +10581,7 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{}],98:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -10508,7 +10622,7 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{"lodash._objecttypes":99}],99:[function(require,module,exports){
+},{"lodash._objecttypes":102}],102:[function(require,module,exports){
 /**
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modularize modern exports="npm" -o ./npm/`
@@ -10530,7 +10644,7 @@ var objectTypes = {
 
 module.exports = objectTypes;
 
-},{}],100:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
   /* globals require, module */
 
 /**
@@ -11065,7 +11179,7 @@ module.exports = objectTypes;
 
   page.sameOrigin = sameOrigin;
 
-},{"path-to-regexp":101}],101:[function(require,module,exports){
+},{"path-to-regexp":104}],104:[function(require,module,exports){
 var isArray = require('isarray');
 
 /**
@@ -11239,12 +11353,12 @@ function pathtoRegexp (path, keys, options) {
   return attachKeys(new RegExp('^' + path + (end ? '$' : ''), flags), keys);
 };
 
-},{"isarray":102}],102:[function(require,module,exports){
+},{"isarray":105}],105:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],103:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 /**!
  * Sortable
  * @author	RubaXa   <trash@rubaxa.org>
@@ -11980,7 +12094,7 @@ module.exports = Array.isArray || function (arr) {
 	return Sortable;
 });
 
-},{}],104:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 var utils = require('./utils')
 
 function Batcher () {
@@ -12026,7 +12140,7 @@ BatcherProto.reset = function () {
 }
 
 module.exports = Batcher
-},{"./utils":129}],105:[function(require,module,exports){
+},{"./utils":132}],108:[function(require,module,exports){
 var Batcher        = require('./batcher'),
     bindingBatcher = new Batcher(),
     bindingId      = 1
@@ -12130,7 +12244,7 @@ BindingProto.unbind = function () {
 }
 
 module.exports = Binding
-},{"./batcher":104}],106:[function(require,module,exports){
+},{"./batcher":107}],109:[function(require,module,exports){
 var Emitter     = require('./emitter'),
     Observer    = require('./observer'),
     config      = require('./config'),
@@ -13168,7 +13282,7 @@ function getRoot (compiler) {
 }
 
 module.exports = Compiler
-},{"./binding":105,"./config":107,"./deps-parser":108,"./directive":109,"./emitter":120,"./exp-parser":121,"./observer":125,"./text-parser":127,"./utils":129,"./viewmodel":130}],107:[function(require,module,exports){
+},{"./binding":108,"./config":110,"./deps-parser":111,"./directive":112,"./emitter":123,"./exp-parser":124,"./observer":128,"./text-parser":130,"./utils":132,"./viewmodel":133}],110:[function(require,module,exports){
 var TextParser = require('./text-parser')
 
 module.exports = {
@@ -13188,7 +13302,7 @@ Object.defineProperty(module.exports, 'delimiters', {
         TextParser.setDelimiters(delimiters)
     }
 })
-},{"./text-parser":127}],108:[function(require,module,exports){
+},{"./text-parser":130}],111:[function(require,module,exports){
 var Emitter  = require('./emitter'),
     utils    = require('./utils'),
     Observer = require('./observer'),
@@ -13254,7 +13368,7 @@ module.exports = {
     }
     
 }
-},{"./emitter":120,"./observer":125,"./utils":129}],109:[function(require,module,exports){
+},{"./emitter":123,"./observer":128,"./utils":132}],112:[function(require,module,exports){
 var dirId           = 1,
     ARG_RE          = /^[\w\$-]+$/,
     FILTER_TOKEN_RE = /[^\s'"]+|'[^']+'|"[^"]+"/g,
@@ -13513,7 +13627,7 @@ function escapeQuote (v) {
 }
 
 module.exports = Directive
-},{"./text-parser":127}],110:[function(require,module,exports){
+},{"./text-parser":130}],113:[function(require,module,exports){
 var utils = require('../utils'),
     slice = [].slice
 
@@ -13555,7 +13669,7 @@ module.exports = {
         parent.insertBefore(frag, this.el)
     }
 }
-},{"../utils":129}],111:[function(require,module,exports){
+},{"../utils":132}],114:[function(require,module,exports){
 var utils    = require('../utils')
 
 /**
@@ -13612,7 +13726,7 @@ module.exports = {
         }
     }
 }
-},{"../utils":129}],112:[function(require,module,exports){
+},{"../utils":132}],115:[function(require,module,exports){
 var utils      = require('../utils'),
     config     = require('../config'),
     transition = require('../transition'),
@@ -13742,7 +13856,7 @@ directives.html    = require('./html')
 directives.style   = require('./style')
 directives.partial = require('./partial')
 directives.view    = require('./view')
-},{"../config":107,"../transition":128,"../utils":129,"./html":110,"./if":111,"./model":113,"./on":114,"./partial":115,"./repeat":116,"./style":117,"./view":118,"./with":119}],113:[function(require,module,exports){
+},{"../config":110,"../transition":131,"../utils":132,"./html":113,"./if":114,"./model":116,"./on":117,"./partial":118,"./repeat":119,"./style":120,"./view":121,"./with":122}],116:[function(require,module,exports){
 var utils = require('../utils'),
     isIE9 = navigator.userAgent.indexOf('MSIE 9.0') > 0,
     filter = [].filter
@@ -13917,7 +14031,7 @@ module.exports = {
         }
     }
 }
-},{"../utils":129}],114:[function(require,module,exports){
+},{"../utils":132}],117:[function(require,module,exports){
 var utils    = require('../utils')
 
 /**
@@ -13976,7 +14090,7 @@ module.exports = {
         this.el.removeEventListener('load', this.iframeBind)
     }
 }
-},{"../utils":129}],115:[function(require,module,exports){
+},{"../utils":132}],118:[function(require,module,exports){
 var utils = require('../utils')
 
 /**
@@ -14027,7 +14141,7 @@ module.exports = {
     }
 
 }
-},{"../utils":129}],116:[function(require,module,exports){
+},{"../utils":132}],119:[function(require,module,exports){
 var utils      = require('../utils'),
     config     = require('../config')
 
@@ -14274,7 +14388,7 @@ function indexOf (vms, obj) {
     }
     return -1
 }
-},{"../config":107,"../utils":129}],117:[function(require,module,exports){
+},{"../config":110,"../utils":132}],120:[function(require,module,exports){
 var prefixes = ['-webkit-', '-moz-', '-ms-']
 
 /**
@@ -14321,7 +14435,7 @@ module.exports = {
     }
 
 }
-},{}],118:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 /**
  *  Manages a conditional child VM using the
  *  binding's value as the component ID.
@@ -14378,7 +14492,7 @@ module.exports = {
     }
 
 }
-},{}],119:[function(require,module,exports){
+},{}],122:[function(require,module,exports){
 var utils = require('../utils')
 
 /**
@@ -14429,7 +14543,7 @@ module.exports = {
     }
 
 }
-},{"../utils":129}],120:[function(require,module,exports){
+},{"../utils":132}],123:[function(require,module,exports){
 var slice = [].slice
 
 function Emitter (ctx) {
@@ -14527,7 +14641,7 @@ EmitterProto.applyEmit = function (event) {
 }
 
 module.exports = Emitter
-},{}],121:[function(require,module,exports){
+},{}],124:[function(require,module,exports){
 var utils           = require('./utils'),
     STR_SAVE_RE     = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g,
     STR_RESTORE_RE  = /"(\d+)"/g,
@@ -14718,7 +14832,7 @@ exports.eval = function (exp, compiler, data) {
     }
     return res
 }
-},{"./utils":129}],122:[function(require,module,exports){
+},{"./utils":132}],125:[function(require,module,exports){
 var utils    = require('./utils'),
     get      = utils.get,
     slice    = [].slice,
@@ -14910,7 +15024,7 @@ function stripQuotes (str) {
         return str.slice(1, -1)
     }
 }
-},{"./utils":129}],123:[function(require,module,exports){
+},{"./utils":132}],126:[function(require,module,exports){
 // string -> DOM conversion
 // wrappers originally from jQuery, scooped from component/domify
 var map = {
@@ -14978,7 +15092,7 @@ module.exports = function (templateString) {
     }
     return frag
 }
-},{}],124:[function(require,module,exports){
+},{}],127:[function(require,module,exports){
 var config      = require('./config'),
     ViewModel   = require('./viewmodel'),
     utils       = require('./utils'),
@@ -15167,7 +15281,7 @@ function inheritOptions (child, parent, topLevel) {
 }
 
 module.exports = ViewModel
-},{"./config":107,"./directives":112,"./filters":122,"./observer":125,"./transition":128,"./utils":129,"./viewmodel":130}],125:[function(require,module,exports){
+},{"./config":110,"./directives":115,"./filters":125,"./observer":128,"./transition":131,"./utils":132,"./viewmodel":133}],128:[function(require,module,exports){
 /* jshint proto:true */
 
 var Emitter  = require('./emitter'),
@@ -15614,7 +15728,7 @@ var pub = module.exports = {
     convert     : convert,
     convertKey  : convertKey
 }
-},{"./emitter":120,"./utils":129}],126:[function(require,module,exports){
+},{"./emitter":123,"./utils":132}],129:[function(require,module,exports){
 var toFragment = require('./fragment');
 
 /**
@@ -15662,7 +15776,7 @@ module.exports = function(template) {
     return toFragment(templateNode.outerHTML);
 }
 
-},{"./fragment":123}],127:[function(require,module,exports){
+},{"./fragment":126}],130:[function(require,module,exports){
 var openChar        = '{',
     endChar         = '}',
     ESCAPE_RE       = /[-.*+?^${}()|[\]\/\\]/g,
@@ -15759,7 +15873,7 @@ exports.parse         = parse
 exports.parseAttr     = parseAttr
 exports.setDelimiters = setDelimiters
 exports.delimiters    = [openChar, endChar]
-},{"./directive":109}],128:[function(require,module,exports){
+},{"./directive":112}],131:[function(require,module,exports){
 var endEvents  = sniffEndEvents(),
     config     = require('./config'),
     // batch enter animations so we only force the layout once
@@ -15988,7 +16102,7 @@ function sniffEndEvents () {
 // Expose some stuff for testing purposes
 transition.codes = codes
 transition.sniff = sniffEndEvents
-},{"./batcher":104,"./config":107}],129:[function(require,module,exports){
+},{"./batcher":107,"./config":110}],132:[function(require,module,exports){
 var config       = require('./config'),
     toString     = ({}).toString,
     win          = window,
@@ -16315,7 +16429,7 @@ function enableDebug () {
         }
     }
 }
-},{"./config":107,"./fragment":123,"./template-parser.js":126,"./viewmodel":130}],130:[function(require,module,exports){
+},{"./config":110,"./fragment":126,"./template-parser.js":129,"./viewmodel":133}],133:[function(require,module,exports){
 var Compiler   = require('./compiler'),
     utils      = require('./utils'),
     transition = require('./transition'),
@@ -16507,7 +16621,7 @@ function query (el) {
 
 module.exports = ViewModel
 
-},{"./batcher":104,"./compiler":106,"./transition":128,"./utils":129}],131:[function(require,module,exports){
+},{"./batcher":107,"./compiler":109,"./transition":131,"./utils":132}],134:[function(require,module,exports){
 /**
  * DEVELOPED BY
  * GIL LOPES BUENO
@@ -16860,7 +16974,7 @@ module.exports = ViewModel
 
 }));
 
-},{}],132:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
 module.exports={
   "webmakerAuthWelcome":  {
     "message": "Welcome to Webmaker!",
@@ -17124,7 +17238,7 @@ module.exports={
   }
 }
 
-},{}],133:[function(require,module,exports){
+},{}],136:[function(require,module,exports){
 "use strict";
 
 var parse = require("./parse.js");
@@ -17184,7 +17298,7 @@ exports.Lexer = Lexer;
 exports.Parser = Parser;
 exports.compile = compile;
 exports.filters = filters;
-},{"./parse.js":134}],134:[function(require,module,exports){
+},{"./parse.js":137}],137:[function(require,module,exports){
 "use strict";
 
 // Angular environment stuff
@@ -18185,7 +18299,7 @@ function getterFn(path, options, fullExp) {
 
 exports.Lexer = Lexer;
 exports.Parser = Parser;
-},{}],135:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 // Browser Request
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18661,7 +18775,7 @@ function b64_enc (data) {
 }
 module.exports = request;
 
-},{}],136:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 (function() {
 
   var cookiejs = {
@@ -18755,7 +18869,7 @@ module.exports = request;
 
 }());
 
-},{}],137:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 // Browser bundle of nunjucks 1.0.7 
 
 (function() {
@@ -23737,7 +23851,7 @@ else {
 
 })();
 
-},{}],138:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 (function(global, factory) {
   if (typeof define === 'function' && define.amd) {
     define(factory);
@@ -23990,7 +24104,7 @@ else {
 
 }));
 
-},{}],139:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
 var expressions = require('angular-expressions');
 var EventEmitter = require('events').EventEmitter;
 
@@ -24594,7 +24708,7 @@ WebmakerLogin.prototype.logout = function () {
 window.WebmakerLogin = WebmakerLogin;
 module.exports = WebmakerLogin;
 
-},{"../../locale/en_US/webmaker-login.json":132,"../core":140,"angular-expressions":133,"events":73,"nunjucks":137,"url":80,"util":82}],140:[function(require,module,exports){
+},{"../../locale/en_US/webmaker-login.json":135,"../core":143,"angular-expressions":136,"events":76,"nunjucks":140,"url":83,"util":85}],143:[function(require,module,exports){
 var state = require('./state');
 var LoginAPI = require('./loginAPI');
 var Emitter = require('./state/emitter');
@@ -24656,7 +24770,7 @@ module.exports = function WebmakerLoginCore(options) {
   };
 };
 
-},{"./loginAPI":141,"./state":145,"./state/emitter":144}],141:[function(require,module,exports){
+},{"./loginAPI":144,"./state":148,"./state/emitter":147}],144:[function(require,module,exports){
 var request = require('browser-request');
 
 module.exports = function LoginAPI(options) {
@@ -24789,7 +24903,7 @@ module.exports = function LoginAPI(options) {
   };
 };
 
-},{"./loginUrls.js":142,"./referrals.js":143,"browser-request":135}],142:[function(require,module,exports){
+},{"./loginUrls.js":145,"./referrals.js":146,"browser-request":138}],145:[function(require,module,exports){
 module.exports = function (options) {
 
   var paths = {},
@@ -24829,7 +24943,7 @@ module.exports = function (options) {
   };
 };
 
-},{}],143:[function(require,module,exports){
+},{}],146:[function(require,module,exports){
 var cookiejs = require('cookie-js');
 
 module.exports = function referrals() {
@@ -24865,7 +24979,7 @@ module.exports = function referrals() {
   };
 };
 
-},{"cookie-js":136}],144:[function(require,module,exports){
+},{"cookie-js":139}],147:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 
 module.exports = function Emitter() {
@@ -24889,7 +25003,7 @@ module.exports = function Emitter() {
   };
 };
 
-},{"events":73}],145:[function(require,module,exports){
+},{"events":76}],148:[function(require,module,exports){
 module.exports = {
   JoinController: require('./join.js'),
   SignInController: require('./signin.js'),
@@ -24898,7 +25012,7 @@ module.exports = {
   LogoutController: require('./logout.js')
 };
 
-},{"./join.js":146,"./logout.js":147,"./persona.js":148,"./reset.js":149,"./signin.js":150}],146:[function(require,module,exports){
+},{"./join.js":149,"./logout.js":150,"./persona.js":151,"./reset.js":152,"./signin.js":153}],149:[function(require,module,exports){
 var Emitter = require('./emitter.js');
 var validation = require('../validation');
 var analytics = require('webmaker-analytics');
@@ -25066,7 +25180,7 @@ module.exports = function JoinController(loginApi, showCTA) {
   };
 };
 
-},{"../validation":151,"./emitter.js":144,"webmaker-analytics":138}],147:[function(require,module,exports){
+},{"../validation":154,"./emitter.js":147,"webmaker-analytics":141}],150:[function(require,module,exports){
 var Emitter = require('./emitter.js');
 var analytics = require('webmaker-analytics');
 
@@ -25096,7 +25210,7 @@ module.exports = function (loginAPI) {
   };
 };
 
-},{"./emitter.js":144,"webmaker-analytics":138}],148:[function(require,module,exports){
+},{"./emitter.js":147,"webmaker-analytics":141}],151:[function(require,module,exports){
 var Emitter = require('./emitter.js');
 var analytics = require('webmaker-analytics');
 
@@ -25156,7 +25270,7 @@ module.exports = function PersonaController(loginApi) {
   };
 };
 
-},{"./emitter.js":144,"webmaker-analytics":138}],149:[function(require,module,exports){
+},{"./emitter.js":147,"webmaker-analytics":141}],152:[function(require,module,exports){
 var Emitter = require('./emitter.js');
 var validation = require('../validation');
 var analytics = require('webmaker-analytics');
@@ -25237,7 +25351,7 @@ module.exports = function ResetController(loginApi) {
   };
 };
 
-},{"../validation":151,"./emitter.js":144,"webmaker-analytics":138}],150:[function(require,module,exports){
+},{"../validation":154,"./emitter.js":147,"webmaker-analytics":141}],153:[function(require,module,exports){
 var Emitter = require('./emitter.js');
 var validation = require('../validation');
 var analytics = require('webmaker-analytics');
@@ -25417,7 +25531,7 @@ module.exports = function SignInController(loginApi) {
   };
 };
 
-},{"../validation":151,"./emitter.js":144,"webmaker-analytics":138}],151:[function(require,module,exports){
+},{"../validation":154,"./emitter.js":147,"webmaker-analytics":141}],154:[function(require,module,exports){
 var usernameRegex = /^[a-zA-Z0-9\-]{1,20}$/,
   emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
   containsBothCases = /^.*(?=.*[a-z])(?=.*[A-Z]).*$/,
@@ -25452,7 +25566,7 @@ module.exports = {
   }
 };
 
-},{}],152:[function(require,module,exports){
+},{}],155:[function(require,module,exports){
 var window = require("global/window")
 var once = require("once")
 var parseHeaders = require('parse-headers')
@@ -25630,7 +25744,7 @@ function createXHR(options, callback) {
 
 function noop() {}
 
-},{"global/window":153,"once":154,"parse-headers":158}],153:[function(require,module,exports){
+},{"global/window":156,"once":157,"parse-headers":161}],156:[function(require,module,exports){
 (function (global){
 if (typeof window !== "undefined") {
     module.exports = window;
@@ -25643,7 +25757,7 @@ if (typeof window !== "undefined") {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],154:[function(require,module,exports){
+},{}],157:[function(require,module,exports){
 module.exports = once
 
 once.proto = once(function () {
@@ -25664,7 +25778,7 @@ function once (fn) {
   }
 }
 
-},{}],155:[function(require,module,exports){
+},{}],158:[function(require,module,exports){
 var isFunction = require('is-function')
 
 module.exports = forEach
@@ -25712,7 +25826,7 @@ function forEachObject(object, iterator, context) {
     }
 }
 
-},{"is-function":156}],156:[function(require,module,exports){
+},{"is-function":159}],159:[function(require,module,exports){
 module.exports = isFunction
 
 var toString = Object.prototype.toString
@@ -25729,7 +25843,7 @@ function isFunction (fn) {
       fn === window.prompt))
 };
 
-},{}],157:[function(require,module,exports){
+},{}],160:[function(require,module,exports){
 
 exports = module.exports = trim;
 
@@ -25745,7 +25859,7 @@ exports.right = function(str){
   return str.replace(/\s*$/, '');
 };
 
-},{}],158:[function(require,module,exports){
+},{}],161:[function(require,module,exports){
 var trim = require('trim')
   , forEach = require('for-each')
   , isArray = function(arg) {
@@ -25777,9 +25891,9 @@ module.exports = function (headers) {
 
   return result
 }
-},{"for-each":155,"trim":157}],159:[function(require,module,exports){
+},{"for-each":158,"trim":160}],162:[function(require,module,exports){
 module.exports = '<div class="header">\n    <button class="glyph back" v-on="click: goBack" class="back">&lt;</button>\n    <h1>{{ \'Add a Brick\' | i18n }}</h1>\n    <div class="glyph spacer"></div>\n</div>\n<div class="list-wrapper">\n    <ul>\n        <li v-repeat="block: blocks">\n            <a data-block="{{block.type}}" class="brick" href="/make/{{app.type}}/edit">\n                <img src="{{block.icon}}" alt="{{block.name}}" />\n                <p>{{ block.name | i18n }}</p>\n            </a>\n        </li>\n    </ul>\n    <ul>\n        <li v-repeat="block: inputBlocks">\n            <a data-block="{{block.type}}" class="brick" href="/make/{{app.type}}/edit">\n                <img src="{{block.icon}}" alt="{{block.name}}" />\n                <p>{{ block.name | i18n }}</p>\n            </a>\n        </li>\n    </ul>\n\n</div>\n';
-},{}],160:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 var view = require('../../lib/view');
 var Blocks = require('../../lib/blocks');
 var blocks = new Blocks();
@@ -25862,9 +25976,9 @@ module.exports = view.extend({
     }
 });
 
-},{"../../lib/blocks":54,"../../lib/view":67,"./index.html":159}],161:[function(require,module,exports){
-module.exports = '<nav id="navigationBar">\n    <a href="{{back}}" class="nav-btn">{{ \'Cancel\' | i18n}}</a>\n    <h1>{{title | i18n}}</h1>\n    <button v-class="disabled: saveDisabled" class="save-btn" v-on="click: onSave">\n        <span class="fa fa-check"></span> {{ \'Save\' | i18n}}\n    </a>\n</nav>\n<form id="attributes">\n    <div class="form-group" v-repeat="block.attributes" v-component="{{ getEditor(type) }}"></div>\n    <div class="btn-delete">\n      <button v-on="click: remove">\n        <span class="fa fa-trash"></span>\n        {{ \'Delete\' | i18n }}\n      </button>\n    </div>\n</form>\n';
-},{}],162:[function(require,module,exports){
+},{"../../lib/blocks":58,"../../lib/view":70,"./index.html":162}],164:[function(require,module,exports){
+module.exports = '<nav id="navigationBar">\n    <a href="{{back}}" class="nav-btn">{{ \'Cancel\' | i18n}}</a>\n    <h1>{{title | i18n}}</h1>\n    <button v-class="disabled: saveDisabled" class="save-btn" v-on="click: onSave">\n        <span class="fa fa-check"></span> {{ \'Save\' | i18n}}\n    </a>\n</nav>\n<main class="main-container">\n    <form>\n        <div class="form-group" v-repeat="block.attributes" v-component="{{ getEditor(type) }}"></div>\n        <div class="btn-delete">\n          <button v-on="click: remove">\n            <span class="fa fa-trash"></span>\n            {{ \'Delete\' | i18n }}\n          </button>\n        </div>\n    </form>\n</main>\n';
+},{}],165:[function(require,module,exports){
 var view = require('../../lib/view');
 
 var editorModels = ({"color":(function () {var f = require("/Users/k88hudson/github/webmaker-app/components/block-editors/color/index.js");f["index"]=require("/Users/k88hudson/github/webmaker-app/components/block-editors/color/index.js");return f;})(),"data":(function () {var f = require("/Users/k88hudson/github/webmaker-app/components/block-editors/data/index.js");f["index"]=require("/Users/k88hudson/github/webmaker-app/components/block-editors/data/index.js");return f;})(),"dropdownChoice":(function () {var f = require("/Users/k88hudson/github/webmaker-app/components/block-editors/dropdownChoice/index.js");f["index"]=require("/Users/k88hudson/github/webmaker-app/components/block-editors/dropdownChoice/index.js");return f;})(),"font-size":(function () {var f = require("/Users/k88hudson/github/webmaker-app/components/block-editors/font-size/index.js");f["index"]=require("/Users/k88hudson/github/webmaker-app/components/block-editors/font-size/index.js");return f;})(),"list":(function () {var f = require("/Users/k88hudson/github/webmaker-app/components/block-editors/list/index.js");f["index"]=require("/Users/k88hudson/github/webmaker-app/components/block-editors/list/index.js");return f;})(),"number":(function () {var f = require("/Users/k88hudson/github/webmaker-app/components/block-editors/number/index.js");f["index"]=require("/Users/k88hudson/github/webmaker-app/components/block-editors/number/index.js");return f;})(),"string":(function () {var f = require("/Users/k88hudson/github/webmaker-app/components/block-editors/string/index.js");f["index"]=require("/Users/k88hudson/github/webmaker-app/components/block-editors/string/index.js");return f;})()});
@@ -25941,9 +26055,9 @@ module.exports = view.extend({
     }
 });
 
-},{"../../lib/view":67,"./index.html":161,"/Users/k88hudson/github/webmaker-app/components/block-editors/color/index.js":24,"/Users/k88hudson/github/webmaker-app/components/block-editors/data/index.js":26,"/Users/k88hudson/github/webmaker-app/components/block-editors/dropdownChoice/index.js":28,"/Users/k88hudson/github/webmaker-app/components/block-editors/font-size/index.js":30,"/Users/k88hudson/github/webmaker-app/components/block-editors/list/index.js":32,"/Users/k88hudson/github/webmaker-app/components/block-editors/number/index.js":34,"/Users/k88hudson/github/webmaker-app/components/block-editors/string/index.js":36,"clone":83}],163:[function(require,module,exports){
-module.exports = '<div v-component="navigationBar"></div>\n<div v-if="!app.id" v-component="alert" type="error" message="errorAppNotFound"></div>\n<div v-if="app.id">\n    <header>\n        <div class="app-icon" style="background-color: {{app.iconColor}}">\n            <div class="app-icon-image" style="background-image: url(\'{{app.iconImage}}\')"></div>\n        </div>\n        <hgroup>\n            <h3>{{app.name}}</h3>\n            <p class="text-light" v-bind-html="\'by _\'" v-with="name: app.author.username"></p>\n        </hgroup>\n    </header>\n    <ul id="detail-share" v-if="isTemplate">\n        <li><a href="" class="disabled">\n            <span class="fa fa-2x fa-fw fa-eye"></span><br>{{ \'Preview\' | i18n }}</a>\n        </li>\n        <li><a href="#" v-on="click: create">\n            <span class="fa fa-2x fa-fw fa-edit"></span><br>{{ \'Create\' | i18n }}</a>\n        </li>\n        <li><a href="" class="disabled">\n            <span class="fa fa-2x fa-fw fa-list"></span><br>{{ \'Data\' | i18n }}</a>\n        </li>\n    </ul>\n    <ul id="detail-share" v-if="!isTemplate">\n        <li><a href="/make/{{id}}/share">\n            <span class="fa fa-2x fa-fw fa-share"></span><br>{{ \'Share\' | i18n }}</a>\n        </li>\n        <li><a href="/make/{{id}}?mode=play">\n            <span class="fa fa-2x fa-fw fa-eye"></span><br>{{ \'Open\' | i18n }}</a>\n        </li>\n        <li><a href="/make/{{id}}?mode=data">\n            <span class="fa fa-2x fa-fw fa-list"></span><br>{{ \'Data\' | i18n }}</a>\n        </li>\n    </ul>\n    <p v-if="app.url" class="text-center">\n        <a target="_blank" href="{{app.url}}">View published app</a>\n    </p>\n</div>\n<div v-component="tabBar"></div>\n';
-},{}],164:[function(require,module,exports){
+},{"../../lib/view":70,"./index.html":164,"/Users/k88hudson/github/webmaker-app/components/block-editors/color/index.js":24,"/Users/k88hudson/github/webmaker-app/components/block-editors/data/index.js":26,"/Users/k88hudson/github/webmaker-app/components/block-editors/dropdownChoice/index.js":28,"/Users/k88hudson/github/webmaker-app/components/block-editors/font-size/index.js":30,"/Users/k88hudson/github/webmaker-app/components/block-editors/list/index.js":32,"/Users/k88hudson/github/webmaker-app/components/block-editors/number/index.js":34,"/Users/k88hudson/github/webmaker-app/components/block-editors/string/index.js":36,"clone":86}],166:[function(require,module,exports){
+module.exports = '<div v-component="navigationBar"></div>\n<div v-if="!app.id" v-component="alert" type="error" message="errorAppNotFound"></div>\n<div v-if="app.id">\n    <header>\n        <div class="app-icon" style="background-color: {{app.iconColor}}">\n            <div class="app-icon-image" style="background-image: url(\'{{app.iconImage}}\')"></div>\n        </div>\n        <hgroup>\n            <h3>{{app.name}}</h3>\n            <p class="text-light" v-bind-html="\'by _\'" v-with="name: app.author.username"></p>\n        </hgroup>\n    </header>\n    <ul id="detail-share" v-if="isTemplate" style="background-color: {{app.iconColor}}">\n        <li><a href="" class="disabled">\n            <span class="fa fa-2x fa-fw fa-eye"></span><br>{{ \'Preview\' | i18n }}</a>\n        </li>\n        <li><a href="#" v-on="click: create">\n            <span class="fa fa-2x fa-fw fa-edit"></span><br>{{ \'Create\' | i18n }}</a>\n        </li>\n        <li><a href="" class="disabled">\n            <span class="fa fa-2x fa-fw fa-list"></span><br>{{ \'Data\' | i18n }}</a>\n        </li>\n    </ul>\n    <ul id="detail-share" v-if="!isTemplate">\n        <li><a href="/make/{{id}}/share">\n            <span class="fa fa-2x fa-fw fa-share"></span><br>{{ \'Share\' | i18n }}</a>\n        </li>\n        <li><a href="/make/{{id}}?mode=play">\n            <span class="fa fa-2x fa-fw fa-eye"></span><br>{{ \'Open\' | i18n }}</a>\n        </li>\n        <li><a href="/make/{{id}}?mode=data">\n            <span class="fa fa-2x fa-fw fa-list"></span><br>{{ \'Data\' | i18n }}</a>\n        </li>\n    </ul>\n    <p v-if="app.url" class="text-center">\n        <a target="_blank" href="{{app.url}}">View published app</a>\n    </p>\n    <div class="preview">\n        <p v-if="app.description" class="description">{{app.description | i18n}}</p>\n    </div>\n</div>\n\n<div v-component="tabBar"></div>\n';
+},{}],167:[function(require,module,exports){
 var view = require('../../lib/view');
 var templates = require('../../lib/templates');
 var clone = require('clone');
@@ -25952,7 +26066,7 @@ module.exports = view.extend({
     id: 'detail',
     template: require('./index.html'),
     data: {
-        back: '/templates',
+        back: true,
         title: 'App'
     },
     methods: {
@@ -26008,25 +26122,65 @@ module.exports = view.extend({
     }
 });
 
-},{"../../lib/templates":64,"../../lib/view":67,"./index.html":163,"clone":83}],165:[function(require,module,exports){
-module.exports = '<div v-component="navigationBar"></div>\n\n<!--\nTODO: Restore this toggle when we have implemented \'nearby\' view.\n<div v-component="slideToggle"\n    model="mode"\n    left="featured"\n    left-label=\'Featured\'\n    right="nearby"\n    right-label="Near Me"\n    >\n    </div>\n -->\n\n    <ul class="list-cell" v-show="mode === \'featured\'">\n        <lh>{{ "Featured Apps" | i18n }}</lh>\n        <li v-component="appCell" v-repeat="apps.featured" mode="detail" template="true"></li>\n    </ul>\n\n    <ul class="list-cell" v-show="mode === \'nearby\'">\n        <li v-component="appCell" v-repeat="apps.nearby"></li>\n    </ul>\n\n<div v-component="tabBar"></div>\n';
-},{}],166:[function(require,module,exports){
+},{"../../lib/templates":67,"../../lib/view":70,"./index.html":166,"clone":86}],168:[function(require,module,exports){
+module.exports = '<div v-component="navigationBar"></div>\n\n<div style="padding: 10px">\n    <div v-component="switch" v-with="options: [\'Featured\',\'Newest\']"></div>\n</div>\n\n<ul class="list-cell" v-show="mode === \'Featured\'">\n    <li v-component="appCell" v-repeat="apps.featured" mode="detail" template="true"></li>\n</ul>\n\n<ul class="list-cell" v-show="mode === \'Newest\'">\n    <li v-component="appCell" v-repeat="apps.newest" mode="detail" template="true"></li>\n</ul>\n\n<div v-component="tabBar"></div>\n';
+},{}],169:[function(require,module,exports){
 var view = require('../../lib/view');
-var fakeDiscovery = require('../../lib/fake-discovery');
+
+var maxAppsToShow = 10;
 
 module.exports = view.extend({
     id: 'discover',
     template: require('./index.html'),
+    ready: function () {
+        this.$on('switchValueChanged', function (event) {
+            if (event === 'Newest') {
+                this.showNewest();
+            } else if (event === 'Featured') {
+                this.showFeatured();
+            }
+        });
+
+        this.showFeatured();
+    },
+    methods: {
+        showNewest: function () {
+            var self = this;
+
+            self.mode = 'Newest';
+
+            self.$root.storage._firebase
+                .limitToLast(maxAppsToShow)
+                .on('value', function (snapshot) {
+                    self.apps.newest = snapshot.val();
+                });
+        },
+        showFeatured: function () {
+            var self = this;
+
+            self.mode = 'Featured';
+
+            self.$root.storage._firebase
+                .orderByChild('isFeatured')
+                .equalTo(true)
+                .limitToLast(maxAppsToShow)
+                .on('value', function (snapshot) {
+                    self.apps.featured = snapshot.val();
+                });
+        }
+    },
     data: {
         title: 'Discover',
-        apps: fakeDiscovery,
-        mode: 'featured'
+        apps: {
+            featured: [],
+            newest: []
+        }
     }
 });
 
-},{"../../lib/fake-discovery":56,"../../lib/view":67,"./index.html":165}],167:[function(require,module,exports){
+},{"../../lib/view":70,"./index.html":168}],170:[function(require,module,exports){
 module.exports = '<div v-component="alert" type="error" message="{{message}}"></div>\n<div v-component="tabBar"></div>\n';
-},{}],168:[function(require,module,exports){
+},{}],171:[function(require,module,exports){
 (function (global){
 var view = require('../../lib/view');
 
@@ -26057,9 +26211,9 @@ module.exports = view.extend({
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/view":67,"./index.html":167}],169:[function(require,module,exports){
+},{"../../lib/view":70,"./index.html":170}],172:[function(require,module,exports){
 module.exports = '<div v-component="navigationBar"></div>\n\n<dl>\n    <dt>Version</dt>\n    <dd>{{package.version}}</dd>\n</dl>\n<dl v-repeat="config">\n    <dt>{{$key}}</dt>\n    <dd>{{$value}}</dd>\n</dl>\n\n';
-},{}],170:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 var view = require('../../lib/view');
 var clone = require('clone');
 var _config = require('../../config');
@@ -26078,9 +26232,9 @@ module.exports = view.extend({
     }
 });
 
-},{"../../config":51,"../../lib/view":67,"./index.html":169,"clone":83}],171:[function(require,module,exports){
-module.exports = '<div v-show="!app.id" v-component="alert" type="error" message="errorAppNotFound"></div>\n<div v-show="app.id">\n\n    <div id="navigationBar">{{ >navigation }}</div>\n\n    <div v-show="mode === \'settings\'">{{ >settings }}</div>\n\n    <div class="edit-inner" v-show="[\'play\', \'edit\'].indexOf(mode) > -1">\n        <a class="add"\n            href="/make/{{app.id}}/add"\n            v-class="off: mode === \'play\'">\n            <span class="fa fa-plus"></span>\n        </a>\n        <ul id="blocks">\n            <li v-repeat="app.blocks"\n                v-component="{{type}}"\n                index="{{$index}}"\n                v-on="click: goTo(\'/make/\' + app.id + \'/block/\' + $index, $event)"\n                v-class="editable: mode === \'edit\'">\n            </li>\n        </ul>\n        <div class="btn-delete">\n            <button v-on="click: removeApp">\n                <span class="fa fa-trash"></span>\n                {{ \'Delete\' | i18n }}\n            </button>\n        </div>\n    </div>\n\n    <div v-show="mode === \'data\'"\n        v-component="dataRepresentation"\n        v-with="dataSet : currentDataSets, initialDataLoaded : initialDataLoaded"></div>\n\n    <div v-if="mode !== \'settings\'" v-component="makeBar" v-with="uiMode: mode === \'settings\' ? \'edit\' : mode, onChange: changeMode"></div>\n\n</div>\n';
-},{}],172:[function(require,module,exports){
+},{"../../config":55,"../../lib/view":70,"./index.html":172,"clone":86}],174:[function(require,module,exports){
+module.exports = '<div v-show="!app.id" v-component="alert" type="error" message="errorAppNotFound"></div>\n<div v-show="app.id">\n\n    <div id="navigationBar">{{ >navigation }}</div>\n\n    <main v-class="edit-container: mode === \'edit\', settings-container: mode === \'settings\'">\n        <div v-show="mode === \'settings\'">{{ >settings }}</div>\n\n        <div v-show="[\'play\', \'edit\'].indexOf(mode) > -1">\n            <a class="add"\n                href="/make/{{app.id}}/add"\n                v-class="off: mode === \'play\'">\n                <span class="fa fa-plus"></span>\n            </a>\n            <ul id="blocks">\n                <li v-repeat="app.blocks"\n                    v-component="{{type}}"\n                    index="{{$index}}"\n                    v-on="click: goTo(\'/make/\' + app.id + \'/block/\' + $index, $event)"\n                    v-class="editable: mode === \'edit\'">\n                </li>\n            </ul>\n            <div class="btn-delete">\n                <button v-on="click: removeApp">\n                    <span class="fa fa-trash"></span>\n                    {{ \'Delete\' | i18n }}\n                </button>\n            </div>\n        </div>\n\n        <div v-show="mode === \'data\'"\n            v-component="dataRepresentation"\n            v-with="dataSet : currentDataSets, initialDataLoaded : initialDataLoaded">\n        </div>\n    </main>\n\n    <div v-if="mode !== \'settings\'" v-component="makeBar" v-with="uiMode: mode === \'settings\' ? \'edit\' : mode, onChange: changeMode"></div>\n\n</div>\n';
+},{}],175:[function(require,module,exports){
 var view = require('../../lib/view');
 var Data = require('../../lib/data');
 var utils = require('../../lib/utils');
@@ -26288,13 +26442,13 @@ module.exports = view.extend({
     }
 });
 
-},{"../../lib/data":55,"../../lib/utils":65,"../../lib/view":67,"./index.html":171,"./navigation.html":173,"./settings.html":174,"lodash.throttle":93,"sortable":103}],173:[function(require,module,exports){
+},{"../../lib/data":59,"../../lib/utils":68,"../../lib/view":70,"./index.html":174,"./navigation.html":176,"./settings.html":177,"lodash.throttle":96,"sortable":106}],176:[function(require,module,exports){
 module.exports = '<a class="nav-btn" v-on="click: goBack">{{ \'Done\' | i18n}}</a>\n\n<h1>\n    <span v-if="mode === \'settings\'">{{ \'App Name & Icon\' | i18n}}</span>\n    <a class="edit-app-name" v-if="mode === \'edit\'" v-on="click: changeMode(\'settings\')" v-if="mode !== \'settings\'">\n      {{app.name}}\n      <span class="fa fa-pencil"></span>\n    </a>\n    <span v-if="mode === \'play\'">\n      {{app.name}}\n    </span>\n</h1>\n\n<a v-if="mode !== \'settings\' && !offlineUser" class="nav-btn" href="{{onDone}}">\n    {{ \'Publish\' | i18n}}\n</a>\n';
-},{}],174:[function(require,module,exports){
+},{}],177:[function(require,module,exports){
 module.exports = '<div class="form-group">\n    <label for="name">App Name</label>\n    <input id="name" type="text" v-model="app.name" v-on="keyup: updateName(app.name)">\n</div>\n\n\n<div class="icon-chooser">\n    <div class="button" v-on="click: previousIconImage()">\n        <span class="fa fa-chevron-left"></span>\n    </div>\n    <div class="icon-container">\n        <div style="background: {{app.iconColor}}"class="app-icon">\n          <div class="icon-image" style="background-image:url(\'{{app.iconImage}}\')"></div>\n        </div>\n    </div>\n    <div class="button" v-on="click: nextIconImage()">\n        <span class="fa fa-chevron-right"></span>\n    </div>\n</div>\n\n<ul class="swatches">\n    <li v-repeat="color: iconColors" style="background-color:{{color}};"\n        v-class="selected: selectedColor === color"\n    v-on="click: onSelectIconColor(color)"></li>\n</ul>\n\n<div class="form-group" v-if="app.url">\n    <label for="url">URL</label>\n    <p id="url" class="url">{{app.url}}</p>\n</div>\n';
-},{}],175:[function(require,module,exports){
+},{}],178:[function(require,module,exports){
 module.exports = '<div v-component="navigationBar"></div>\n\n<!-- <div id="profile-header">\n  <div class="profile-avatar" style="background-image: url({{user.avatar}});"></div>\n  <div class="profile-info" v-class="profile-info-padded: user.username" >{{ user.username }}</div>\n</div> -->\n\n<div class="profile-details">\n\n   <!--  <form class="profile-inputs">\n        <div v-if="!editing" v-bind-html="\'name from location\'"></div>\n        <div v-if="editing" style="height: 100%;">\n            <input name="name" placeholder="{{ \'Your name\' | i18n }}" type="text" v-model="name">\n            <input name="location" placeholder="{{ \'Your location\' | i18n }}" type="text" v-model="location">\n            <button type="button" v-on="click: save()">Save</button><button v-on="click: cancel()" type="button">Cancel</button>\n        </div>\n    </form>\n    <i v-if="!editing" class="fa fa-pencil fa-2x edit-icon" v-on="click: editing = true"></i> -->\n\n  <ul class="list-cell">\n      <lh>{{ "My Apps" | i18n }}</lh>\n      <li v-component="appCell" v-repeat="myApps"></li>\n  </ul>\n  <div class="no-apps" v-show="myApps.length == 0">\n    <p>{{ "No Apps Message" | i18n }}</p>\n    <a href="/templates" class="btn btn-block btn-dark">{{ "Make an App" | i18n }}</a>\n  </div>\n\n  <ul class="menu">\n <!--    <li v-show="user.username" class="form-group">\n      <a href="http://login-dev.mofodev.net/account">{{ "Edit my Profile" | i18n }} ({{user.username}})</a>\n    </li> -->\n    <li v-show="!user.username" class="form-group">\n      <a href="/sign-in">{{ "Sign In" | i18n }}</a>\n    </li>\n    <li class="form-group">\n      <a href="#" v-on="click: clean">{{ "Delete my Apps" | i18n }}</a>\n    </li>\n    <li class="form-group">\n      <a href="/healthcheck">Developer</a>\n    </li>\n    <li v-show="user.username" class="form-group">\n      <a href="#" v-on="click: logout">{{ "Sign Out" | i18n }}</a>\n    </li>\n  </ul>\n\n</div>\n\n<div v-component="tabBar"></div>\n';
-},{}],176:[function(require,module,exports){
+},{}],179:[function(require,module,exports){
 var view = require('../../lib/view');
 
 module.exports = view.extend({
@@ -26363,14 +26517,15 @@ module.exports = view.extend({
     }
 });
 
-},{"../../lib/view":67,"./index.html":175}],177:[function(require,module,exports){
-module.exports = '<div v-component="navigationBar"></div>\n\n<form>\n    <div v-show="error" v-component="alert" type="error" message="{{error}}"></div>\n    <div v-show="!error">\n        <h3 class="section">Share via SMS</h3>\n        <div v-show="user.username" class="form-group">\n            <textarea name="share-message" v-model="shareMessage" class="textarea-large"></textarea>\n        </div>\n    </div>\n</form>\n<!--\n<ul class="list-cell">\n    <lh class="with-border-top">Share To</lh>\n    <li>\n        <div class="cell">\n            <div class="left">\n                <span class="title">SMS</span>\n                <span class="description">Share by SMS</span>\n            </div>\n            <div class="right">\n                <a href="/add-contacts">Add contacts</a>\n            </div>\n        </div>\n    </li>\n    <li>\n        <div class="cell">\n            <div class="left">\n                <span class="title">Facebook</span>\n                <span class="description">Share on Facebook</span>\n            </div>\n            <div class="right">\n                <input type="checkbox" class="pull-right">\n            </div>\n        </div>\n    </li>\n</ul> -->\n\n<div v-component="tabBar"></div>\n';
-},{}],178:[function(require,module,exports){
+},{"../../lib/view":70,"./index.html":178}],180:[function(require,module,exports){
+module.exports = '<div v-component="navigationBar"></div>\n\n<main class="main-container">\n    <form>\n        <div v-show="error" v-component="alert" type="error" message="{{error}}"></div>\n        <div v-show="!error">\n            <div v-show="user.username" class="form-group">\n                <textarea name="share-message" v-model="shareMessage" class="textarea-large"></textarea>\n            </div>\n        </div>\n    </form>\n</main>\n<ul class="list-cell">\n    <lh class="with-border-top">Share Via</lh>\n    <li>\n        <div class="cell">\n            <div class="left">\n                <span class="title">SMS</span>\n            </div>\n            <div class="right no-padding">\n                <button class="btn btn-cell text-small" v-on="click: onSMSClick">\n                    Add contacts\n                </button>\n            </button>\n        </div>\n    </li>\n    <li>\n        <div class="cell">\n            <div class="left">\n                <span class="title">Webmaker</span>\n                <span class="text-small">Show in Discover Gallery</span>\n            </div>\n            <div class="right">\n                <div v-component="toggle" v-with="checked: isDiscoverable, disabled: disableDiscovery"></div>\n            </div>\n        </div>\n    </li>\n</ul>\n\n<div v-component="tabBar"></div>\n\n<div v-class="active: showAndroid" v-component="contactPicker" v-with="show: showAndroid, contacts: contacts, modeledContacts: modeledContacts"></div>\n';
+},{}],181:[function(require,module,exports){
 (function (global){
 var view = require('../../lib/view');
 var i18n = require('../../lib/i18n');
 var publish = require('../../lib/publish');
 var page = require('page');
+var app;
 
 var PUBLISH_TIMEOUT = 20000;
 
@@ -26380,7 +26535,13 @@ module.exports = view.extend({
     data: {
         title: 'Share',
         error: false,
-        doneDisabled: true
+        doneDisabled: true,
+        showAndroid: false,
+        cancel: true,
+        contacts: [],
+        modeledContacts: {},
+        isDiscoverable: false,
+        disableDiscovery: true
     },
     methods: {
         login: function (e) {
@@ -26392,8 +26553,17 @@ module.exports = view.extend({
             if (!self.$data.app.url) return;
             var sms = 'sms:?body=' +
                 encodeURIComponent(self.$data.shareMessage);
-            window.location = sms;
             page('/make/' + self.$parent.$data.params.id + '/detail');
+
+            app.update({
+                isDiscoverable: self.isDiscoverable
+            });
+
+            window.location = sms;
+        },
+        onSMSClick: function (e) {
+            e.preventDefault();
+            this.$broadcast('openContactPicker');
         }
     },
     created: function () {
@@ -26402,12 +26572,19 @@ module.exports = view.extend({
     ready: function () {
         var self = this;
         var id = self.$root.$data.params.id;
-        var app = self.$root.storage.getApp(id);
+
+        app = self.$root.storage.getApp(id);
 
         self.$data.cancel = '/make/' + id;
 
         // Bind user
         self.$data.user = self.model.data.session.user;
+
+        // Enable discovery for non-guests (users w. email)
+        if (self.$data.user.email) {
+            self.disableDiscovery = false;
+            self.isDiscoverable = app.data.isDiscoverable || false;
+        }
 
         var message;
 
@@ -26476,9 +26653,9 @@ module.exports = view.extend({
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/i18n":57,"../../lib/publish":60,"../../lib/view":67,"./index.html":177,"page":100}],179:[function(require,module,exports){
+},{"../../lib/i18n":60,"../../lib/publish":63,"../../lib/view":70,"./index.html":180,"page":103}],182:[function(require,module,exports){
 module.exports = '<div class="top">		\n	<h1><span>{{ \'Make &amp; share the web\' | i18n }}</span></h1>\n\n</div>\n\n<div class="bottom">\n    <p v-if="loginError">\n        <div v-if="loginError" v-component="alert" type="error" message="{{loginError}}" no-margin></div>\n    </p>\n    <div v-if="!offline" >\n        <a v-if="username" href="/profile" class="btn-next">{{ \'Get Started\' | i18n }}</a>\n        <button v-if="!username" class="btn-next" v-on="click: create">{{ \'Join Webmaker\' | i18n }}</button>\n        <button v-if="!username" class="btn-next" v-on="click: login">{{ \'Sign In\' | i18n }}</button>\n        <a href="#" class="btn-next btn-guest" v-on="click: goOffline">{{ \'Try as Guest\' | i18n }}</a>\n        <p>\n            {{ \'Guest Explanation\' | i18n }}\n        </p>\n		\n    </div>\n    <div v-if="offline" >\n        <a href="#" class="btn-next" v-on="click: goOffline">{{ \'Try in Offline Mode\' | i18n }}</a>\n        <p>\n            {{ \'Offline Mode Explanation\' | i18n }}\n        </p>\n    </div>\n</div>\n\n';
-},{}],180:[function(require,module,exports){
+},{}],183:[function(require,module,exports){
 var view = require('../../lib/view');
 
 module.exports = view.extend({
@@ -26520,9 +26697,9 @@ module.exports = view.extend({
     }
 });
 
-},{"../../lib/view":67,"./index.html":179}],181:[function(require,module,exports){
-module.exports = '<div v-component="navigationBar"></div>\n<div class="list-cell template-cell">\n    <a href="/template/{{id}}/detail" class="cell" v-repeat="templates" template="true">\n        <div class="left">\n            <div class="app-icon">\n              <div class="app-icon-image" style="background-image:url({{iconImage}});"></div>\n            </div>\n        </div>\n        <div class="middle">\n            <span class="title">{{(templateTitle || name) | i18n}}</span>\n            <span v-if="description" class="description">{{description | i18n}}</span>\n        </div>\n        <div class="right">\n            <span class="fa fa-chevron-right"></span>\n        </div>\n    </a>\n</div>\n\n<div v-component="tabBar"></div>\n';
-},{}],182:[function(require,module,exports){
+},{"../../lib/view":70,"./index.html":182}],184:[function(require,module,exports){
+module.exports = '<div v-component="navigationBar"></div>\n<ul class="list-cell template-cell">\n    <li v-repeat="templates" style="background-color: {{iconColor}}">\n        <a href="/template/{{id}}/detail" class="cell" template="true">\n            <div class="left">\n                <div class="app-icon">\n                  <div class="app-icon-image" style="background-image:url({{iconImage}});"></div>\n                </div>\n            </div>\n            <div class="middle">\n                <span class="title">{{(templateTitle || name) | i18n}}</span>\n            </div>\n            <div class="right">\n                <span class="fa fa-chevron-right"></span>\n            </div>\n        </a>\n    </li>\n</ul>\n\n<div v-component="tabBar"></div>\n';
+},{}],185:[function(require,module,exports){
 var templates = require('../../lib/templates.json');
 var view = require('../../lib/view');
 
@@ -26552,7 +26729,7 @@ module.exports = view.extend({
     }
 });
 
-},{"../../lib/templates.json":64,"../../lib/view":67,"./index.html":181}]},{},[58])
+},{"../../lib/templates.json":67,"../../lib/view":70,"./index.html":184}]},{},[61])
 
 
 //# sourceMappingURL=index.js.map
