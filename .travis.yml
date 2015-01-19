@@ -12,6 +12,7 @@ install:
 - sudo apt-get update -y
 - sudo apt-get install -y nodejs
 - sudo npm -g install cordova
+- sudo npm install
 script:
 - echo "Script stage"
 - cordova build android
