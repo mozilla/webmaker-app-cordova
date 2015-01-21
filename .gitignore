@@ -1,8 +1,9 @@
 .DS_Store
 
 build/
-platforms/android/ant-build/
-platforms/android/CordovaLib/ant-build/
+platforms/
+plugins/
+www/
 node_modules/
 
 *.pbxuser

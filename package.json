@@ -4,7 +4,8 @@
   "description": "[![Build Status](https://travis-ci.org/mozillafordevelopment/beaker.svg)](https://travis-ci.org/mozillafordevelopment/beaker)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./scripts/build.js && cordova prepare && cordova run android",
+    "android": "node ./scripts/copy-assets.js && cordova prepare && cordova run android"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,8 @@
   },
   "devDependencies": {
     "fs-extra": "^0.14.0",
-    "gulp": "^3.8.10"
+    "gulp": "^3.8.10",
+    "async": "^0.9.0",
+    "colors": "^1.0.3"
   }
 }
