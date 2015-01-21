@@ -5,8 +5,6 @@ var async = require('async');
 var exec = require('child_process').exec;
 var colors = require('colors');
 
-var copyAssets = require('./copy-assets');
-
 function doExec(text) {
     return function (done) {
         exec(text, function (err, stdout, stderr) {
@@ -21,7 +19,7 @@ function doExec(text) {
 console.log('starting build...'.bgMagenta);
 
 // Copy assets to www
-copyAssets();
+require('./copy-assets');
 
 // Clean
 fs.removeSync('./platforms');
