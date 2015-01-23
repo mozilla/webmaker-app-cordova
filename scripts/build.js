@@ -29,7 +29,9 @@ async.series([
     doExec('cordova platform add android'),
     doExec('cordova platform add firefoxos'),
     doExec('cordova platform add ios'),
-    doExec('cordova plugin add org.apache.cordova.contacts')
+    doExec('cordova plugin add org.apache.cordova.contacts'),
+    // bug fix in progress for com.rjfun.cordova.sms
+    doExec('cordova plugin add https://github.com/k88hudson/cordova-plugin-sms.git')
 ], function (err) {
     // Done!
     if (err) return console.log('finished build, but there were errors!'.bgMagenta);
