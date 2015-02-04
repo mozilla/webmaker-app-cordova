@@ -6,3 +6,12 @@ fs.mkdirSync('www');
 fs.copySync('./node_modules/webmaker/build', './www');
 fs.copySync('./assets/res', './www/res');
 
+// Would love to do this with a build configuration but we cant do taht till we merge these repos
+fs.removeSync('./www/cordova.js');
+
+// This sucks, but we need a base tag in the web build and not in the cordova build
+// We can't do it in a script tag because ffos prevents inline scripts boo.
+var indexFile = './www/index.html';
+var indexText = fs.readFileSync(indexFile, {encoding: 'utf8'});
+indexText = indexText.replace('<base href="/">', '');
+fs.writeFileSync(indexFile, indexText);
