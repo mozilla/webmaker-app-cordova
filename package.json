@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./scripts/build.js && cordova prepare && cordova run android",
-    "android": "node ./scripts/copy-assets.js && cordova prepare && cordova run android",
+    "android": "node ./scripts/copy-assets.js --android && cordova prepare && cordova run android",
     "firefoxos": "node ./scripts/copy-assets.js && cordova prepare firefoxos"
   },
   "repository": {
