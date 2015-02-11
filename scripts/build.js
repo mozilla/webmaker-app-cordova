@@ -26,13 +26,12 @@ fs.removeSync('./platforms');
 fs.removeSync('./plugins');
 
 async.series([
-    doExec('cordova platform add android'),
-    doExec('cordova platform add firefoxos'),
-    doExec('cordova platform add ios'),
+    doExec('cordova platform add android firefoxos ios'),
     doExec('cordova plugin add org.apache.cordova.contacts'),
     // bug fix in progress for com.rjfun.cordova.sms
     doExec('cordova plugin add https://github.com/k88hudson/cordova-plugin-sms.git'),
-    doExec('cordova plugin add org.apache.cordova.camera')
+    // PR in progress for org.apache.cordova.camera to add dataURIs for ffos
+    doExec('cordova plugin add https://github.com/k88hudson/cordova-plugin-camera.git')
 ], function (err) {
     // Done!
     if (err) return console.log('finished build, but there were errors!'.bgMagenta);
