@@ -27,9 +27,7 @@ fs.removeSync('./plugins');
 
 async.series([
     doExec('cordova platform add android firefoxos ios'),
-    doExec('cordova plugin add org.apache.cordova.contacts'),
-    // bug fix in progress for com.rjfun.cordova.sms
-    doExec('cordova plugin add https://github.com/k88hudson/cordova-plugin-sms.git'),
+    doExec('cordova plugin add https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin.git'),
     // PR in progress for org.apache.cordova.camera to add dataURIs for ffos
     doExec('cordova plugin add https://github.com/k88hudson/cordova-plugin-camera.git')
 ], function (err) {
