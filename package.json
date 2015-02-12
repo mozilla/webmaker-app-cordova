@@ -7,7 +7,7 @@
     "start": "node ./scripts/build.js && cordova prepare && cordova run android",
     "build": "node ./scripts/build.js && cordova prepare",
     "android": "node ./scripts/copy-assets.js --android && cordova prepare && cordova run android",
-    "firefoxos": "node ./scripts/copy-assets.js && cordova prepare firefoxos && cp ./www/manifest.webapp ./platforms/firefoxos/www/manifest.webapp"
+    "firefoxos": "node ./scripts/copy-assets.js && cordova prepare firefoxos"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "fs-extra": "^0.14.0",
     "gulp": "^3.8.10",
     "async": "^0.9.0",
-    "colors": "^1.0.3"
+    "colors": "^1.0.3",
+    "archiver": "^0.14.2"
   }
 }

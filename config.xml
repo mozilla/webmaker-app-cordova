@@ -3,13 +3,14 @@
     <name>Webmaker</name>
     <description></description>
     <author href="https://www.mozilla.org">Mozilla Foundation</author>
-    
+
     <content src="index.html" />
     <access origin="*" />
     <icon src="www/res/icon.png" />
-    
+
     <platform name="firefoxos">
           <icon src="www/res/ff/icon.png" width="128" height="128" />
+          <hook type="after_prepare" src="scripts/after-prepare-ffos.js" />
     </platform>
 
     <platform name="android">
