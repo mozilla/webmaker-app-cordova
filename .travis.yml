@@ -19,7 +19,7 @@ install:
 - sudo npm install
 script:
 - echo "Script stage"
-- npm build
+- npm run build
 - if [[ $PLATFORM = 'android' ]]; then npm run android:build; fi
 - if [[ $PLATFORM = 'firefoxos' ]]; then npm run firefoxos; fi
 before_deploy:
