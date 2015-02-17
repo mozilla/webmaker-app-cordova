@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node ./scripts/build.js && cordova prepare && cordova run android",
     "build": "node ./scripts/build.js && cordova prepare",
-    "android": "node ./scripts/copy-assets.js --android && cordova prepare && cordova run android",
+    "android:build": "node ./scripts/copy-assets.js --android && cordova prepare",
+    "android": "npm run android:build && cordova run android",
     "firefoxos": "node ./scripts/copy-assets.js && cordova prepare firefoxos"
   },
   "repository": {

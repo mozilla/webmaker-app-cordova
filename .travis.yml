@@ -1,4 +1,7 @@
 language: android
+matrix:
+  - PLATFORM=android
+  - PLATFORM=firefoxos
 android:
   components:
   - platform-tools
@@ -15,10 +18,12 @@ install:
 - sudo npm install
 script:
 - echo "Script stage"
-- node ./scripts/build.js
-- cordova prepare
-- cordova build android
-- cordova build firefoxos
+- npm build
+- if [${PLATFORM} == "android"]; then
+    npm run android:build
+  elif [${PLATFORM} == "firefoxos"]; then
+    npm run firefoxos
+  fi
 before_deploy:
 - ls "platforms/android/ant-build"
 deploy:
@@ -34,6 +39,7 @@ deploy:
   on:
     repo: mozilla/webmaker-app-cordova
     branch: master
+    condition: $PLATFORM = android
 deploy:
   provider: s3
   skip_cleanup: true
@@ -47,4 +53,5 @@ deploy:
   on:
     repo: mozilla/webmaker-app-cordova
     branch: master
+    condition: $PLATFORM = firefoxos
 
