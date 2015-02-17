@@ -1,7 +1,8 @@
 language: android
-matrix:
-  - PLATFORM=android
-  - PLATFORM=firefoxos
+env:
+  matrix:
+    - PLATFORM=android
+    - PLATFORM=firefoxos
 android:
   components:
   - platform-tools
