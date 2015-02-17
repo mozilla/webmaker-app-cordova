@@ -19,13 +19,10 @@ install:
 script:
 - echo "Script stage"
 - npm build
-- if [${PLATFORM} == "android"]; then
-    npm run android:build
-  elif [${PLATFORM} == "firefoxos"]; then
-    npm run firefoxos
-  fi
+- if [[ $PLATFORM = 'android' ]]; then npm run android:build; fi
+- if [[ $PLATFORM = 'firefoxos' ]]; then npm run firefoxos; fi
 before_deploy:
-- ls "platforms/android/ant-build"
+- if [[ $PLATFORM = 'android' ]]; then ls "platforms/android/ant-build"; fi
 deploy:
   provider: s3
   skip_cleanup: true
