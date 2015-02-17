@@ -1,6 +1,6 @@
 {
   "name": "webmaker-app-cordova",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "[![Build Status](https://travis-ci.org/mozillafordevelopment/beaker.svg)](https://travis-ci.org/mozillafordevelopment/beaker)",
   "main": "index.js",
   "scripts": {
