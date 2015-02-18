@@ -23,14 +23,4 @@
         <icon src="www/res/android/icon_xxhdpi.png" density="xxhdpi" />
         <icon src="www/res/android/icon_xxxhdpi.png" density="xxxhdpi" />
     </platform>
-
-    <platform name="ios">
-        <preference name="WebViewBounce" value="false" />
-        <preference name="StatusBarOverlaysWebView" value="false"/>
-
-        <icon src="www/res/ios/icon-72.png" width="72" height="72" />
-        <icon src="www/res/ios/icon-72@2x.png" width="144" height="144" />
-        <icon src="www/res/ios/icon.png" width="57" height="57" />
-        <icon src="www/res/ios/icon@2x.png" width="114" height="114" />
-    </platform>
 </widget>

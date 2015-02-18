@@ -26,7 +26,7 @@ fs.removeSync('./platforms');
 fs.removeSync('./plugins');
 
 async.series([
-    doExec('cordova platform add android firefoxos ios'),
+    doExec('cordova platform add android firefoxos'),
     doExec('cordova plugin add https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin.git'),
     doExec('cordova plugin add org.apache.cordova.network-information'),
     // PR in progress for org.apache.cordova.camera to add dataURIs for ffos
