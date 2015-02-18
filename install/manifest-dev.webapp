@@ -1,0 +1,9 @@
+{
+    "name": "Webmaker",
+    "package_path" : "https://webmaker-dist.s3.amazonaws.com/dev/firefoxos/package.zip",
+    "version": "0.0.1",
+    "developer": {
+        "name": "Mozilla",
+        "url": "https://mozilla.org"
+    }
+}
