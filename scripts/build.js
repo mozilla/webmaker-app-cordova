@@ -29,6 +29,8 @@ async.series([
     doExec('cordova platform add android firefoxos'),
     doExec('cordova plugin add https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin.git'),
     doExec('cordova plugin add org.apache.cordova.network-information'),
+    // Allows app to launch links in the default browser:
+    doExec('cordova plugin add org.apache.cordova.inappbrowser'),
     // PR in progress for org.apache.cordova.camera to add dataURIs for ffos
     doExec('cordova plugin add https://github.com/k88hudson/cordova-plugin-camera.git')
 ], function (err) {
