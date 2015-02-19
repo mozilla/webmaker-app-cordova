@@ -1,10 +1,9 @@
 .DS_Store
 
-build/
 platforms/
 plugins/
-www/
 node_modules/
+www/
 
 *.pbxuser
 !default.pbxuser

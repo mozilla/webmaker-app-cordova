@@ -8,9 +8,13 @@
     <access origin="*" />
     <icon src="www/res/icon.png" />
 
+    <hook type="after_platform_add" src="scripts/after_platform_add.js" />
+    <hook type="before_prepare" src="scripts/before_prepare.js" />
+
     <platform name="firefoxos">
-          <icon src="www/res/ff/icon.png" width="128" height="128" />
-          <hook type="after_prepare" src="scripts/after-prepare-ffos.js" />
+        <icon src="www/res/ff/icon.png" width="128" height="128" />
+        <hook type="after_prepare" src="scripts/after_prepare_firefoxos.js" />
+        <hook type="after_build" src="scripts/after_build_firefoxos.js" />
     </platform>
 
     <platform name="android">
@@ -22,5 +26,7 @@
         <icon src="www/res/android/icon_xhdpi.png" density="xhdpi" />
         <icon src="www/res/android/icon_xxhdpi.png" density="xxhdpi" />
         <icon src="www/res/android/icon_xxxhdpi.png" density="xxxhdpi" />
+
+        <hook type="after_prepare" src="scripts/after_prepare_android.js" />
     </platform>
 </widget>
