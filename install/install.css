@@ -1,0 +1,60 @@
+*,
+*:before,
+*:after {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+body {
+    background: #64A8EE;
+    color: white;
+    font-family: 'Fira Sans', sans-serif;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    -ms-flex-pack: justify;
+    justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -moz-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    padding: 5px;
+    text-align: center;
+}
+
+.toucan {
+    display: none;
+    margin: 0 auto 15px auto;
+    width: 100px;
+}
+@media (min-width: 600px) {
+    .toucan {
+        width: auto;
+    }
+}
+
+#message {
+    max-width: 320px;
+}
+
+strong {
+    font-weight: normal;
+    background: white;
+    color: #64A8EE;
+    padding: 0 5px;
+    border-radius: 3px;
+}
