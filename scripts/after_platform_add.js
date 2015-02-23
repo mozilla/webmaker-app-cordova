@@ -1,8 +1,13 @@
 var async = require('async');
 var spawn = require('./spawn');
 
+var cordova = 'cordova';
+if (process.platform === 'win32') {
+    cordova += '.cmd';
+}
+
 var addPlugin = function(plugin, callback) {
-    spawn('cordova', ['plugin', 'add', plugin], callback);
+    spawn(cordova, ['plugin', 'add', plugin], callback);
 };
 
 module.exports = function(context) {
