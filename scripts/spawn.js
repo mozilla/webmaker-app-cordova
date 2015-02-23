@@ -1,12 +1,18 @@
 var spawn = require('child_process').spawn;
 
-module.exports = function (command, args, done) {
+module.exports = function spawnProcess(command, args, done, fallback) {
+
     var p = spawn(command, args, {
         stdio: 'inherit'
     });
+
     var ended = false;
 
     p.on('error', function(err) {
+        if (process.platform === 'win32' && !fallback) {
+            spawnProcess(command + '.cmd', args, done, true);
+        }
+
         ended = true;
         done(err);
     });
