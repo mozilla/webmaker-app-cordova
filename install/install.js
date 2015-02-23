@@ -16,9 +16,13 @@
         var version = ua.os.version && ua.os.version.split('.').map(function (n) {
             return parseInt(n, 10);
         });
+
+        // FF Android doesn't include any OS version, so we will be optimistic
+        if (!version) return true;
+
         if (version[0] < 4 ) return false;
         if (version[0] === 4 && version[1] < 2) return false;
-        console.log('foo');
+
         return true;
     }
 
