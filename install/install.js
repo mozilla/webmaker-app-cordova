@@ -46,7 +46,7 @@
             alert('Install failed, error: ' + this.error.name);
         };
     } else if (isValidAndroid()) {
-        message = 'Downloading apk...';
+        message = 'Downloading apk (requires Android 4.2+) ...';
         window.location = apkUrl;
     } else if (isMobile()) {
         document.getElementById('toucan').style.display = 'block';
