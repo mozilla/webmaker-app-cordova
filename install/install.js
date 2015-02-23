@@ -48,9 +48,7 @@
         document.getElementById('toucan').style.display = 'block';
         message = 'Sorry! Looks like your device is unsupported. Webmaker is only available on Android 4.2+ and FirefoxOS 2.0+';
     } else {
-        message = 'Visit mzl.la/webmaker on a mobile device to install.'
-        // Replace the above line with this when the install page is live
-        //window.location = 'https://webmaker.org/install';
+        window.location = 'http://mzl.la/webmaker';
     }
     document.getElementById('message').innerHTML = message;
 })();
