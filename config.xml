@@ -21,6 +21,10 @@
         <preference name="android-minSdkVersion" value="10" />
         <preference name="android-targetSdkVersion" value="17" />
 
+        <access origin="tel:*" launch-external="yes"/>
+        <access origin="sms:*" launch-external="yes"/>
+        <access origin="mailto:*" launch-external="yes"/>
+
         <icon src="www/res/android/icon_mdpi.png" density="mdpi" />
         <icon src="www/res/android/icon_hdpi.png" density="hdpi" />
         <icon src="www/res/android/icon_xhdpi.png" density="xhdpi" />
