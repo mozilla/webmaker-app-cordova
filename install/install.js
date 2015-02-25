@@ -21,7 +21,7 @@
         if (!version) return true;
 
         if (version[0] < 4 ) return false;
-        if (version[0] === 4 && version[1] < 2) return false;
+        if (version[0] === 4 && version[1] < 4) return false;
 
         return true;
     }
@@ -46,12 +46,13 @@
             alert('Install failed, error: ' + this.error.name);
         };
     } else if (isValidAndroid()) {
-        message = 'Downloading apk (requires Android 4.2+) ...';
+        message = 'Downloading app..';
         window.location = apkUrl;
     } else if (isMobile()) {
         document.getElementById('toucan').style.display = 'block';
-        message = 'Sorry! Looks like your device is unsupported. Webmaker is only available on Android 4.2+ and FirefoxOS 2.0+';
+        message = 'Sorry! Looks like your device is unsupported. Webmaker is only available on Android 4.4+ and FirefoxOS 2.1+';
     } else {
+        message = 'Redirecting to install page...'
         window.location = 'http://mzl.la/webmaker';
     }
     document.getElementById('message').innerHTML = message;
