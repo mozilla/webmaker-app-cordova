@@ -13,11 +13,11 @@ module.exports = function(context) {
     indexText = indexText.replace('<base href="/">', '<base href="/android_asset/www/">');
     fs.writeFileSync(indexFile, indexText);
     var androidManifest = fs.readFileSync(androidManifestPath, {encoding: 'utf8'});
-    androidManifest = parseString(androidManifest, function (err, result) {
+    parseString(androidManifest, function (err, result) {
         if (err) return deferral.resolve(error);
         result.manifest.application[0].activity[0].$['android:screenOrientation'] = 'portrait';
-        var xml = builder.buildObject(result);
-        fs.writeFileSync(androidManifestPath, xml);
+        var output = builder.buildObject(result);
+        fs.writeFileSync(androidManifestPath, output);
         deferral.resolve();
     });
 
