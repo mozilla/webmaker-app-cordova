@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/k88hudson/webmaker-app-cordova",
   "dependencies": {
-    "webmaker": "0.1.0"
+    "webmaker": "0.1.1"
   },
   "devDependencies": {
     "archiver": "^0.14.2",
