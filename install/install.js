@@ -29,10 +29,7 @@
 
     var message;
 
-    if (['desktop', 'tablet'].indexOf(ua.device.type) !== -1) {
-        message = 'Redirecting to install page...'
-        window.location = 'http://mzl.la/webmaker';
-    } else if (isValidFFOS()) {
+    if (isValidFFOS()) {
         message = 'Installing...';
         var request = window.navigator.mozApps.installPackage(manifestUrl);
 
