@@ -46,7 +46,7 @@
             alert('Install failed, error: ' + this.error.name);
         };
     } else if (isValidAndroid() && isMobile()) {
-        message = 'Downloading app..';
+        message = 'Downloading... Check "Downloads" to install the app once complete.';
         window.location = apkUrl;
     } else if (isMobile()) {
         document.getElementById('toucan').style.display = 'block';
