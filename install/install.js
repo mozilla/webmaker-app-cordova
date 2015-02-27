@@ -44,7 +44,7 @@
         request.onerror = function () {
             alert('Install failed, error: ' + this.error.name);
         };
-    } else if (isValidAndroid() && isMobile()) {
+    } else if (isValidAndroid()) {
         message = 'Downloading... Check "Downloads" to install the app once complete.';
         window.location = apkUrl;
     } else {
