@@ -3,10 +3,6 @@
     var parser = new UAParser();
     var ua = parser.getResult();
 
-    function isMobile() {
-        return ua.device.type === 'mobile';
-    }
-
     function isValidFFOS() {
        return ua.os.name === 'Firefox OS' && parseInt(ua.browser.major, 10) >= 32;
     }
@@ -33,7 +29,10 @@
 
     var message;
 
-    if (isValidFFOS()) {
+    if (['desktop', 'tablet'].indexOf(ua.device.type) !== -1) {
+        message = 'Redirecting to install page...'
+        window.location = 'http://mzl.la/webmaker';
+    } else if (isValidFFOS()) {
         message = 'Installing...';
         var request = window.navigator.mozApps.installPackage(manifestUrl);
 
@@ -48,12 +47,9 @@
     } else if (isValidAndroid() && isMobile()) {
         message = 'Downloading... Check "Downloads" to install the app once complete.';
         window.location = apkUrl;
-    } else if (isMobile()) {
+    } else {
         document.getElementById('toucan').style.display = 'block';
         message = 'Sorry! Looks like your device is unsupported. Webmaker is only available on Android 4.4+ and FirefoxOS 2.1+';
-    } else {
-        message = 'Redirecting to install page...'
-        window.location = 'http://mzl.la/webmaker';
     }
     document.getElementById('message').innerHTML = message;
 })();
