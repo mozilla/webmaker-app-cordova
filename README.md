@@ -1,3 +1,5 @@
+# Deprecated. Please see https://github.com/mozilla/webmaker-android for more information.
+
 # Webmaker App Cordova
 
 [![Build Status](https://travis-ci.org/mozilla/webmaker-app-cordova.svg)](https://travis-ci.org/mozilla/webmaker-app-cordova)
