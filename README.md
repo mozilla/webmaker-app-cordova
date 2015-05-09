@@ -1,4 +1,6 @@
-# Deprecated. Please see https://github.com/mozilla/webmaker-android for more information.
+## Deprecated. Please see https://github.com/mozilla/webmaker-android for more information.
+
+---
 
 # Webmaker App Cordova
 
